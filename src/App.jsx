@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import logo from "./assets/Logo.png";
 import Img from "./assets/SaveGram.App_465951508_18255885751270777_7700571196460743910_n.jpg";
+import Img01 from "./assets/SaveGram.App_473159548_18154312030341825_2753885223322677880_n.jpg";
 import Img1 from "./assets/SaveGram.App_470139808_18260022607270777_87086414099876666_n.jpg";
 import Img2 from "./assets/SaveGram.App_470192459_18260022445270777_2753421504139093913_n.jpg";
 import Img3 from "./assets/SnapInsta.to_469855828_18259499311270777_6834103661568486313_n.jpg";
@@ -14,12 +15,6 @@ export default function App() {
   const today = new Date();
   const startDay = new Date(today);
   startDay.setDate(today.getDate());
-
-  const days = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(startDay);
-    d.setDate(startDay.getDate() + i);
-    return d;
-  });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -102,7 +97,7 @@ export default function App() {
 
         <div
           className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out h-[100vh] ${
-            isOpen ? "max-h-80" : "max-h-0"
+            isOpen ? "max-h-60" : "max-h-0"
           } bg-white shadow-lg`}
         >
           <div className="border-t border-yellow-600 w-4/5 mx-auto mt-2"></div>
@@ -153,8 +148,14 @@ export default function App() {
             Roupas de grife para momentos
             <br /> inesquecíveis.
           </p>
-          <button className="px-8 py-3 bg-yellow-500 text-white rounded-full shadow-lg hover:bg-yellow-600 transition">
-            Ver Catálogo
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setShowCalendar(!showCalendar);
+            }}
+            className="px-8 py-3 bg-yellow-500 text-white rounded-full shadow-lg hover:bg-yellow-600 transition"
+          >
+            Agende sua Experiência
           </button>
         </div>
       </section>
@@ -189,6 +190,23 @@ export default function App() {
           <div className="p-4">
             <h3 className="text-xl font-semibold text-gray-800 font-serif">
               Vestidos de casamento
+            </h3>
+            <p className="text-gray-600">Disponível para aluguel</p>
+            <button className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md">
+              Agendar
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white border border-yellow-200 shadow-md rounded-lg overflow-hidden">
+          <img
+            src={Img01}
+            alt="Vestido de Gala"
+            className="w-full h-80 object-cover"
+          />
+          <div className="p-4">
+            <h3 className="text-xl font-semibold text-gray-800 font-serif">
+              15 anos
             </h3>
             <p className="text-gray-600">Disponível para aluguel</p>
             <button className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md">
