@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "./firebase";
+
 import logo from "./assets/Logo.png";
 import Img from "./assets/SaveGram.App_465951508_18255885751270777_7700571196460743910_n.jpg";
 import Img01 from "./assets/SaveGram.App_473159548_18154312030341825_2753885223322677880_n.jpg";
@@ -11,10 +14,26 @@ export default function App() {
   const images = [Img1, Img2, Img3];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const today = new Date();
   const startDay = new Date(today);
   startDay.setDate(today.getDate());
+
+  const handleDateClick = async (day) => {
+    const dateKey = day.toISOString().split("T")[0];
+    setSelectedDate(dateKey);
+
+    const q = query(collection(db, "horarios"), where("data", "==", dateKey));
+
+    const querySnapshot = await getDocs(q);
+    const times = [];
+    querySnapshot.forEach((doc) => {
+      times.push(...doc.data().horas);
+    });
+
+    setAvailableTimes(times);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -301,6 +320,7 @@ export default function App() {
                       return (
                         <button
                           key={i}
+                          onClick={() => handleDateClick(day)}
                           className={`flex flex-col items-center justify-center px-4 py-3 rounded-xl transition transform hover:scale-105 shadow-md ${
                             isToday
                               ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold ring-2 ring-yellow-400"
@@ -322,6 +342,28 @@ export default function App() {
                 </div>
               ));
             })()}
+          </div>
+        </div>
+      )}
+
+      {selectedDate && (
+        <div className="mt-6">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">
+            Horários disponíveis em {selectedDate}
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            {availableTimes.length > 0 ? (
+              availableTimes.map((hora, idx) => (
+                <button
+                  key={idx}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                >
+                  {hora}
+                </button>
+              ))
+            ) : (
+              <p className="text-gray-500">Nenhum horário disponível.</p>
+            )}
           </div>
         </div>
       )}
