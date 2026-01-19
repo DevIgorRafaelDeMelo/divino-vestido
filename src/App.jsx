@@ -33,8 +33,8 @@ export default function App() {
 
   return (
     <>
-      <nav className="bg-white shadow-md border-b border-gray-200 ">
-        <div className="container mx-auto px-8  flex justify-between items-center">
+      <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-md border-b border-gray-200">
+        <div className="container mx-auto px-8 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <img src={logo} alt="Logo Divino Estilo" className="h-24 w-auto" />
           </div>
@@ -91,7 +91,6 @@ export default function App() {
             >
               Agendamento
             </a>
-
             <a
               href="#contato"
               className="relative transition duration-300 hover:text-yellow-500 after:content-[''] after:block after:w-0 after:h-[2px] after:bg-yellow-500 after:transition-all after:duration-300 hover:after:w-full after:mx-auto"
@@ -126,8 +125,10 @@ export default function App() {
               Agendamento
             </a>
             <a
-              href="#contato"
-              className="relative text-lg transition duration-300 hover:text-yellow-500 after:content-[''] after:block after:w-0 after:h-[2px] after:bg-yellow-500 after:transition-all after:duration-300 hover:after:w-full after:mx-auto"
+              href="https://wa.me/message/CBK3ADYAKSACP1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative transition duration-300 hover:text-yellow-500 after:content-[''] after:block after:w-0 after:h-[2px] after:bg-yellow-500 after:transition-all after:duration-300 hover:after:w-full after:mx-auto"
             >
               Contato
             </a>
