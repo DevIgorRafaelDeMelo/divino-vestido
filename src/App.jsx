@@ -298,7 +298,7 @@ export default function App() {
 
       {showCalendar && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-2xl">
+          <div className="relative bg-white p-4 rounded-2xl shadow-xl w-[90%] max-w-2xl">
             <h1 className="text-center text-3xl font-extrabold text-gray-900 mb-6 tracking-tight">
               Agendamento
               <span className="block mt-2 h-1 w-20 bg-gradient-to-r from-yellow-500 to-yellow-600 mx-auto rounded-full"></span>
@@ -352,7 +352,7 @@ export default function App() {
                           <button
                             key={i}
                             onClick={() => handleDateClick(day)}
-                            className={`flex flex-col items-center justify-center px-4 py-3 rounded-xl transition transform hover:scale-105 shadow-md ${
+                            className={`flex flex-col items-center justify-center px-2 py-2 rounded-xl transition transform hover:scale-105 shadow-md ${
                               isToday
                                 ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold ring-2 ring-yellow-400"
                                 : "bg-gray-100 text-gray-800 hover:bg-gray-200"
@@ -383,7 +383,7 @@ export default function App() {
                   return (
                     <div
                       key={hour}
-                      className="flex items-center justify-between px-5 py-4 rounded-xl shadow-md bg-white border border-yellow-400"
+                      className="flex items-center justify-between px-5 py-2 rounded-xl shadow-md bg-white border border-yellow-400"
                     >
                       <div className="flex flex-col">
                         <span className="text-lg font-bold text-gray-800">
