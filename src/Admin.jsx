@@ -103,6 +103,9 @@ export default function AdminPage() {
   const filteredAppointments = appointments
     .filter((a) => a.date >= today1)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const todaysAppointments = appointments.filter((a) => a.date === todayStr);
 
   if (!isLoggedIn) {
     return (
@@ -230,61 +233,246 @@ export default function AdminPage() {
           </div>
         </div>
       </nav>
-
-      {/* Título responsivo */}
-      <h1
-        className="text-2xl md:text-4xl font-serif font-bold text-gray-700 
-               mb-10 mt-32 md:mt-[15vh] text-center 
-               border-b-2 border-yellow-500 inline-block pb-2 md:mx-[100px]"
-      >
-        Painel de Agenda
-      </h1>
-
-      <div className="overflow-x-auto rounded-xl md:mx-[100px] shadow-lg border border-gray-200">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
-              <th className="px-4 py-3 text-left">Data</th>
-              <th className="px-4 py-3 text-left">Horário</th>
-              <th className="px-4 py-3 text-left">Nome</th>
-              <th className="px-4 py-3 text-left">Telefone</th>
-              <th className="px-4 py-3 text-left">Evento</th>
-              <th className="px-4 py-3 text-left">Pessoas</th>
-              <th className="px-4 py-3 text-center">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAppointments.map((a) => {
-              const isToday = a.date === today;
-              return (
-                <tr
-                  key={a.id}
-                  className={`border-t transition ${
-                    isToday
-                      ? "bg-blue-50 border-l-4 border-blue-500 font-semibold"
-                      : "bg-white hover:bg-gray-50"
-                  }`}
-                >
-                  <td className="px-4 py-3">{a.date}</td>
-                  <td className="px-4 py-3">{a.hour}:00</td>
-                  <td className="px-4 py-3">{a.nome}</td>
-                  <td className="px-4 py-3">{a.telefone}</td>
-                  <td className="px-4 py-3">{a.evento}</td>
-                  <td className="px-4 py-3">{a.pessoas}</td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleDelete(a.id)}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition"
-                    >
-                      Cancelar
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="px-[10%]">
+        <h1
+          className="text-2xl md:text-4xl font-serif font-bold text-gray-700 
+               mb-10 mt-20 md:mt-[15vh] text-center 
+               border-b-2 border-yellow-500 inline-block pb-2 "
+        >
+          Painel de Agenda
+        </h1>
       </div>
+      <div className="overflow-x-auto">
+        <div className="px-[10%]">
+          <table className="hidden md:table min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+            <thead>
+              <tr className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white text-sm uppercase tracking-wide">
+                <th className="px-6 py-3 text-left">Data</th>
+                <th className="px-6 py-3 text-left">Horário</th>
+                <th className="px-6 py-3 text-left">Nome</th>
+                <th className="px-6 py-3 text-left">Telefone</th>
+                <th className="px-6 py-3 text-left">Evento</th>
+                <th className="px-6 py-3 text-left">Pessoas</th>
+                <th className="px-6 py-3 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAppointments.map((a) => {
+                const isToday = a.date === today;
+                return (
+                  <tr
+                    key={a.id}
+                    className={`transition ${
+                      isToday
+                        ? "bg-blue-50 border-l-4 border-blue-500 font-semibold"
+                        : "odd:bg-gray-50 even:bg-white hover:bg-gray-100"
+                    }`}
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {a.date}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {a.hour}:00
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                      {a.nome}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {a.telefone}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {a.evento}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {a.pessoas}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition text-sm font-medium"
+                      >
+                        Cancelar
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="md:hidden space-y-6">
+          {/* Agendas do Dia */}
+          <h2 className="text-lg font-bold text-gray-800 border-b border-yellow-500 pb-1">
+            Agendas do Dia
+          </h2>
+
+          {todaysAppointments.length === 0 ? (
+            <div className="text-center text-gray-500 italic">
+              Sem agendamento hoje
+            </div>
+          ) : (
+            todaysAppointments.map((a) => (
+              <div
+                key={a.id}
+                className="p-5 rounded-xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition"
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-semibold text-gray-700">
+                    {a.date}
+                  </span>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {a.hour}:00
+                  </span>
+                </div>
+
+                <div className="mb-3">
+                  <h3 className="text-lg font-bold text-gray-900">{a.nome}</h3>
+                  <p className="text-sm text-gray-500">{a.telefone}</p>
+                </div>
+
+                <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3 mb-3">
+                  <div>
+                    <span className="block font-medium text-gray-700">
+                      Evento
+                    </span>
+                    <span className="text-gray-600">{a.evento}</span>
+                  </div>
+                  <div>
+                    <span className="block font-medium text-gray-700">
+                      Pessoas
+                    </span>
+                    <span className="text-gray-600">{a.pessoas}</span>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <button
+                    onClick={() => handleDelete(a.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+
+          <h2 className="text-lg font-bold text-gray-800 border-b border-yellow-500 pb-1 mt-6">
+            Agendas da Semana
+          </h2>
+          {filteredAppointments
+            .filter((a) => {
+              const todayDate = new Date(today);
+              const appointmentDate = new Date(a.date);
+              const diff =
+                (appointmentDate - todayDate) / (1000 * 60 * 60 * 24);
+              return diff > 0 && diff <= 7;
+            })
+            .map((a) => (
+              <div
+                key={a.id}
+                className="p-5 rounded-xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition"
+              >
+                {/* Cabeçalho com data e hora */}
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-semibold text-gray-700">
+                    {a.date}
+                  </span>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {a.hour}:00
+                  </span>
+                </div>
+
+                {/* Nome e telefone */}
+                <div className="mb-3">
+                  <h3 className="text-lg font-bold text-gray-900">{a.nome}</h3>
+                  <p className="text-sm text-gray-500">{a.telefone}</p>
+                </div>
+
+                {/* Evento e pessoas */}
+                <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3 mb-3">
+                  <div>
+                    <span className="block font-medium text-gray-700">
+                      Evento
+                    </span>
+                    <span className="text-gray-600">{a.evento}</span>
+                  </div>
+                  <div>
+                    <span className="block font-medium text-gray-700">
+                      Pessoas
+                    </span>
+                    <span className="text-gray-600">{a.pessoas}</span>
+                  </div>
+                </div>
+
+                {/* Botão de ação */}
+                <div className="text-right">
+                  <button
+                    onClick={() => handleDelete(a.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ))}
+          {/* Demais Agendamentos */}
+          <h2 className="text-lg font-bold text-gray-800 border-b border-yellow-500 pb-1 mt-6">
+            Demais Agendamentos
+          </h2>
+          {filteredAppointments
+            .filter((a) => {
+              const todayDate = new Date(today);
+              const appointmentDate = new Date(a.date);
+              const diff =
+                (appointmentDate - todayDate) / (1000 * 60 * 60 * 24);
+              return diff > 7; // depois da semana
+            })
+            .map((a) => (
+              <div
+                key={a.id}
+                className="p-5 rounded-xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition"
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-semibold text-gray-700">
+                    {a.date}
+                  </span>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {a.hour}:00
+                  </span>
+                </div>
+                <div className="mb-3">
+                  <h3 className="text-lg font-bold text-gray-900">{a.nome}</h3>
+                  <p className="text-sm text-gray-500">{a.telefone}</p>
+                </div>
+                <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3 mb-3">
+                  <div>
+                    <span className="block font-medium text-gray-700">
+                      Evento
+                    </span>
+                    <span className="text-gray-600">{a.evento}</span>
+                  </div>
+                  <div>
+                    <span className="block font-medium text-gray-700">
+                      Pessoas
+                    </span>
+                    <span className="text-gray-600">{a.pessoas}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <button
+                    onClick={() => handleDelete(a.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+
       {showCalendar && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="relative bg-white p-4 rounded-2xl shadow-xl w-[90%] max-w-2xl">
