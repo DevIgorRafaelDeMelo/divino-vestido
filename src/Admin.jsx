@@ -302,7 +302,6 @@ export default function AdminPage() {
         </div>
 
         <div className="md:hidden space-y-6">
-          {/* Agendas do Dia */}
           <h2 className="text-lg font-bold text-gray-800 border-b border-yellow-500 pb-1">
             Agendas do Dia
           </h2>
@@ -374,7 +373,6 @@ export default function AdminPage() {
                 key={a.id}
                 className="p-5 rounded-xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition"
               >
-                {/* Cabeçalho com data e hora */}
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm font-semibold text-gray-700">
                     {a.date}
@@ -384,13 +382,11 @@ export default function AdminPage() {
                   </span>
                 </div>
 
-                {/* Nome e telefone */}
                 <div className="mb-3">
                   <h3 className="text-lg font-bold text-gray-900">{a.nome}</h3>
                   <p className="text-sm text-gray-500">{a.telefone}</p>
                 </div>
 
-                {/* Evento e pessoas */}
                 <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3 mb-3">
                   <div>
                     <span className="block font-medium text-gray-700">
@@ -406,7 +402,6 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Botão de ação */}
                 <div className="text-right">
                   <button
                     onClick={() => handleDelete(a.id)}
@@ -417,7 +412,6 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
-          {/* Demais Agendamentos */}
           <h2 className="text-lg font-bold text-gray-800 border-b border-yellow-500 pb-1 mt-6">
             Demais Agendamentos
           </h2>
@@ -427,7 +421,7 @@ export default function AdminPage() {
               const appointmentDate = new Date(a.date);
               const diff =
                 (appointmentDate - todayDate) / (1000 * 60 * 60 * 24);
-              return diff > 7; // depois da semana
+              return diff > 7;
             })
             .map((a) => (
               <div

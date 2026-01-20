@@ -11,7 +11,7 @@ export default function App() {
       {currentPage === "home" && <HomePage />}
       {currentPage === "admin" && <AdminPage />}
 
-      <footer className="bg-gray-900 text-gray-300 py-10 mt-16">
+      <footer className="bg-gray-900 text-gray-300 py-10 ">
         <div className="container mx-auto px-6 flex flex-col items-center text-center">
           <div className="flex items-center justify-center mb-6">
             <img
