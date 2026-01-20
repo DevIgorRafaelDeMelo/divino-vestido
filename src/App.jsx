@@ -12,7 +12,7 @@ import Img3 from "./assets/SnapInsta.to_469855828_18259499311270777_683410366156
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const images = [Img1, Img2, Img3];
-
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const [showFormModal, setShowFormModal] = useState(false);
@@ -439,6 +439,8 @@ export default function App() {
                         telefone: formData.telefone,
                       });
                       setShowFormModal(false);
+                      setShowConfirmModal(true);
+
                       setFormData({
                         nome: "",
                         pessoas: "",
@@ -511,6 +513,28 @@ export default function App() {
                     className="absolute top-4 right-4 text-gray-400 hover:text-red-500"
                   >
                     ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {showConfirmModal && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
+                  <h2 className="text-2xl font-bold text-yellow-500 mb-4">
+                     Agendamento confirmado!
+                  </h2>
+                  <p className="text-gray-700 mb-6">
+                    Seu agendamento foi registrado com sucesso.
+                    <br />
+                    Entraremos em contato pelo telefone informado.
+                  </p>
+
+                  <button
+                    onClick={() => setShowConfirmModal(false)}
+                    className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
+                  >
+                    Fechar
                   </button>
                 </div>
               </div>
