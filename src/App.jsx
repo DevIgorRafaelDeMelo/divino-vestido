@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 
 import logo from "./assets/Logo.png";
@@ -12,28 +12,22 @@ import Img3 from "./assets/SnapInsta.to_469855828_18259499311270777_683410366156
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const images = [Img1, Img2, Img3];
+
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
+
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+
+  const [formData, setFormData] = useState({
+    nome: "",
+    pessoas: "",
+    evento: "",
+    telefone: "",
+  });
 
   const today = new Date();
   const startDay = new Date(today);
   startDay.setDate(today.getDate());
-
-  const handleDateClick = async (day) => {
-    const dateKey = day.toISOString().split("T")[0];
-    setSelectedDate(dateKey);
-
-    const q = query(collection(db, "horarios"), where("data", "==", dateKey));
-
-    const querySnapshot = await getDocs(q);
-    const times = [];
-    querySnapshot.forEach((doc) => {
-      times.push(...doc.data().horas);
-    });
-
-    setAvailableTimes(times);
-  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,6 +38,39 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, [images.length]);
+
+  const [availableTimes, setAvailableTimes] = useState([]);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const generateSlots = () => {
+    const morning = [9, 10, 11];
+    const afternoon = [14, 15, 16, 17];
+    return [...morning, ...afternoon].map((hour) => ({ hour }));
+  };
+
+  const handleDateClick = async (day) => {
+    setSelectedDate(day);
+    const dateKey = day.toISOString().split("T")[0];
+
+    const q = query(
+      collection(db, "appointments"),
+      where("date", "==", dateKey),
+    );
+    const querySnapshot = await getDocs(q);
+
+    const booked = querySnapshot.docs.map((doc) => doc.data());
+
+    const allSlots = generateSlots();
+
+    const available = allSlots.map((slot) => {
+      const countBooked = booked.filter((b) => b.hour === slot.hour).length;
+      const vagasRestantes = 2 - countBooked;
+      return { ...slot, vagasRestantes };
+    });
+
+    setAvailableTimes(available);
+  };
 
   return (
     <>
@@ -270,7 +297,7 @@ export default function App() {
       </footer>
 
       {showCalendar && (
-        <div className="fixed inset-0  flex items-center justify-center bg-black/50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-2xl">
             <h1 className="text-center text-3xl font-extrabold text-gray-900 mb-6 tracking-tight">
               Agendamento
@@ -278,91 +305,215 @@ export default function App() {
             </h1>
 
             <button
-              onClick={() => setShowCalendar(false)}
+              onClick={() => {
+                setShowCalendar(false);
+                setSelectedDate(null);
+              }}
               className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition transform hover:scale-110"
             >
               ✕
             </button>
 
-            {(() => {
-              const today = new Date();
-              const daysForward = Array.from({ length: 30 }, (_, i) => {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                return d;
-              });
-
-              const grouped = daysForward.reduce((acc, day) => {
-                const monthKey = day.toLocaleDateString("pt-BR", {
-                  month: "long",
-                  year: "numeric",
+            {!selectedDate &&
+              (() => {
+                const today = new Date();
+                const daysForward = Array.from({ length: 30 }, (_, i) => {
+                  const d = new Date(today);
+                  d.setDate(today.getDate() + i);
+                  return d;
                 });
-                if (!acc[monthKey]) acc[monthKey] = [];
-                acc[monthKey].push(day);
-                return acc;
-              }, {});
 
-              return Object.values(grouped).map((monthDays, idx) => (
-                <div key={idx} className="mb-8">
-                  <h2 className="text-center text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">
-                    {monthDays[0].toLocaleDateString("pt-BR", {
-                      month: "long",
-                      year: "numeric",
-                    })}
+                const grouped = daysForward.reduce((acc, day) => {
+                  const monthKey = day.toLocaleDateString("pt-BR", {
+                    month: "long",
+                    year: "numeric",
+                  });
+                  if (!acc[monthKey]) acc[monthKey] = [];
+                  acc[monthKey].push(day);
+                  return acc;
+                }, {});
+
+                return Object.values(grouped).map((monthDays, idx) => (
+                  <div key={idx} className="mb-8">
+                    <h2 className="text-center text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">
+                      {monthDays[0].toLocaleDateString("pt-BR", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </h2>
+
+                    <div className="border-b-2 border-yellow-500 mb-4 w-2/3 mx-auto"></div>
+
+                    <div className="grid grid-cols-5 gap-3">
+                      {monthDays.map((day, i) => {
+                        const isToday =
+                          day.toDateString() === today.toDateString();
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => handleDateClick(day)}
+                            className={`flex flex-col items-center justify-center px-4 py-3 rounded-xl transition transform hover:scale-105 shadow-md ${
+                              isToday
+                                ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold ring-2 ring-yellow-400"
+                                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                            }`}
+                          >
+                            <span className="text-lg font-bold">
+                              {day.getDate()}
+                            </span>
+                            <span className="text-xs uppercase tracking-wide text-gray-500">
+                              {day.toLocaleDateString("pt-BR", {
+                                weekday: "short",
+                              })}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ));
+              })()}
+
+            {selectedDate && (
+              <div className="mt-6 flex flex-col gap-4">
+                {availableTimes.map(({ hour, vagasRestantes }) => {
+                  const start = `${hour.toString().padStart(2, "0")}:00`;
+                  const end = `${(hour + 1).toString().padStart(2, "0")}:00`;
+
+                  return (
+                    <div
+                      key={hour}
+                      className="flex items-center justify-between px-5 py-4 rounded-xl shadow-md bg-white border border-yellow-400"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-lg font-bold text-gray-800">
+                          {start} → {end}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {vagasRestantes > 0
+                            ? `${vagasRestantes} vaga(s) disponível`
+                            : "Ocupado"}
+                        </span>
+                      </div>
+
+                      {vagasRestantes > 0 && (
+                        <button
+                          onClick={() => {
+                            setSelectedSlot({ date: selectedDate, hour });
+                            setShowFormModal(true);
+                          }}
+                          className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
+                        >
+                          Reservar
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="mt-6 w-full px-6 py-4 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition"
+                >
+                  ← Voltar ao calendário
+                </button>
+              </div>
+            )}
+
+            {showFormModal && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md">
+                  <h2 className="text-center text-2xl font-bold mb-4">
+                    Finalizar Reserva
                   </h2>
 
-                  <div className="border-b-2 border-yellow-500 mb-4 w-2/3 mx-auto"></div>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      await addDoc(collection(db, "appointments"), {
+                        date: selectedSlot.date.toISOString().split("T")[0],
+                        hour: selectedSlot.hour,
+                        nome: formData.nome,
+                        pessoas: formData.pessoas,
+                        evento: formData.evento,
+                        telefone: formData.telefone,
+                      });
+                      setShowFormModal(false);
+                      setFormData({
+                        nome: "",
+                        pessoas: "",
+                        evento: "",
+                        telefone: "",
+                      });
+                    }}
+                    className="flex flex-col gap-4"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Nome"
+                      value={formData.nome}
+                      onChange={(e) =>
+                        setFormData({ ...formData, nome: e.target.value })
+                      }
+                      className="border rounded-lg px-3 py-2"
+                      required
+                    />
 
-                  <div className="grid grid-cols-7 gap-3">
-                    {monthDays.map((day, i) => {
-                      const isToday =
-                        day.toDateString() === today.toDateString();
-                      return (
-                        <button
-                          key={i}
-                          onClick={() => handleDateClick(day)}
-                          className={`flex flex-col items-center justify-center px-4 py-3 rounded-xl transition transform hover:scale-105 shadow-md ${
-                            isToday
-                              ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-bold ring-2 ring-yellow-400"
-                              : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                          }`}
-                        >
-                          <span className="text-lg font-bold">
-                            {day.getDate()}
-                          </span>
-                          <span className="text-xs uppercase tracking-wide text-gray-500">
-                            {day.toLocaleDateString("pt-BR", {
-                              weekday: "short",
-                            })}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                    <input
+                      type="number"
+                      placeholder="Quantidade de pessoas"
+                      value={formData.pessoas}
+                      onChange={(e) =>
+                        setFormData({ ...formData, pessoas: e.target.value })
+                      }
+                      className="border rounded-lg px-3 py-2"
+                      required
+                    />
+
+                    {/* Select de tipo de evento */}
+                    <select
+                      value={formData.evento}
+                      onChange={(e) =>
+                        setFormData({ ...formData, evento: e.target.value })
+                      }
+                      className="border rounded-lg px-3 py-2"
+                      required
+                    >
+                      <option value="">Selecione o tipo de evento</option>
+                      <option value="casamento-noiva">Casamento - Noiva</option>
+                      <option value="casamento-noivo">Casamento - Noivo</option>
+                      <option value="padrinho">Padrinho</option>
+                      <option value="15anos">15 anos</option>
+                      <option value="outros">Outros eventos</option>
+                    </select>
+
+                    <input
+                      type="tel"
+                      placeholder="Telefone"
+                      value={formData.telefone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, telefone: e.target.value })
+                      }
+                      className="border rounded-lg px-3 py-2"
+                      required
+                    />
+
+                    <button
+                      type="submit"
+                      className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold py-2 rounded-lg hover:from-yellow-600 hover:to-yellow-700"
+                    >
+                      Confirmar Reserva
+                    </button>
+                  </form>
+
+                  <button
+                    onClick={() => setShowFormModal(false)}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
                 </div>
-              ));
-            })()}
-          </div>
-        </div>
-      )}
-
-      {selectedDate && (
-        <div className="mt-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">
-            Horários disponíveis em {selectedDate}
-          </h3>
-          <div className="grid grid-cols-3 gap-3">
-            {availableTimes.length > 0 ? (
-              availableTimes.map((hora, idx) => (
-                <button
-                  key={idx}
-                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                >
-                  {hora}
-                </button>
-              ))
-            ) : (
-              <p className="text-gray-500">Nenhum horário disponível.</p>
+              </div>
             )}
           </div>
         </div>

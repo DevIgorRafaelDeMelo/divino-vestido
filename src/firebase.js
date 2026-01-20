@@ -1,19 +1,16 @@
-// firebase.js
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// Configuração gerada pelo Firebase Console
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_PROJETO.firebaseapp.com",
-  projectId: "SEU_PROJETO",
-  storageBucket: "SEU_PROJETO.appspot.com",
-  messagingSenderId: "NUMERO",
-  appId: "APP_ID",
+  apiKey: "AIzaSyAEsPG9VVoo9LkVJt6Mh2hK9Pz1eLdBXbY",
+  authDomain: "vetido-divino.firebaseapp.com",
+  projectId: "vetido-divino",
+  storageBucket: "vetido-divino.firebasestorage.app",
+  messagingSenderId: "220553834199",
+  appId: "1:220553834199:web:911694222b99e219194a92",
+  measurementId: "G-6WHPR2LTHX",
 };
 
-// Inicializa o app
 const app = initializeApp(firebaseConfig);
 
-// Exporta o Firestore
 export const db = getFirestore(app);
