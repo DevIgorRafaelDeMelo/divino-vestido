@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AdminPage from "./admin";
+import AdminPage from "./Admin";
 import HomePage from "./Home";
 import logo from "./assets/Logo.png";
 

@@ -249,7 +249,14 @@ export default function App() {
               Formaturas
             </h3>
             <p className="text-gray-600">Disponível para aluguel</p>
-            <button className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setShowCalendar(true);
+                setIsOpen(false);
+              }}
+              className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md"
+            >
               Agendar
             </button>
           </div>
@@ -266,7 +273,14 @@ export default function App() {
               Vestidos de casamento
             </h3>
             <p className="text-gray-600">Disponível para aluguel</p>
-            <button className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setShowCalendar(true);
+                setIsOpen(false);
+              }}
+              className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md"
+            >
               Agendar
             </button>
           </div>
@@ -283,7 +297,14 @@ export default function App() {
               15 anos
             </h3>
             <p className="text-gray-600">Disponível para aluguel</p>
-            <button className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setShowCalendar(true);
+                setIsOpen(false);
+              }}
+              className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md"
+            >
               Agendar
             </button>
           </div>
