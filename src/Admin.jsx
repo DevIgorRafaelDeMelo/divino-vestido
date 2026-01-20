@@ -658,10 +658,12 @@ export default function AdminPage() {
                       required
                     >
                       <option value="">Selecione o tipo de evento</option>
-                      <option value="casamento-noiva">Casamento - Noiva</option>
-                      <option value="casamento-noivo">Casamento - Noivo</option>
-                      <option value="padrinho">Padrinho</option>
-                      <option value="15anos">15 anos</option>
+                      <option value="Casamento">Casamento</option>
+                      <option value="Madrinhas/Padrinhos">
+                        Madrinhas/Padrinhos
+                      </option>
+                      <option value="15 Anos">15 Anos</option>
+                      <option value="Formatura">Formatura</option>
                       <option value="outros">Outros eventos</option>
                     </select>
 
@@ -669,11 +671,25 @@ export default function AdminPage() {
                       type="tel"
                       placeholder="Telefone"
                       value={formData.telefone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, telefone: e.target.value })
-                      }
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, "");
+                        if (value.length > 11) value = value.slice(0, 11);
+
+                        let formatted = value;
+                        if (value.length > 2) {
+                          formatted = value.slice(0, 2) + " " + value.slice(2);
+                        }
+                        if (value.length > 7) {
+                          formatted =
+                            formatted.slice(0, 8) + "-" + formatted.slice(8);
+                        }
+
+                        setFormData({ ...formData, telefone: formatted });
+                      }}
                       className="border rounded-lg px-3 py-2"
                       required
+                      pattern="\d{2}\s\d{5}-\d{4}"
+                      title="Digite um telefone válido no formato 51 99999-9999"
                     />
 
                     <button

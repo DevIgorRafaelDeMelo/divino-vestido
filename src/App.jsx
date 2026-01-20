@@ -13,7 +13,6 @@ export default function App() {
 
       <footer className="bg-gray-900 text-gray-300 py-10 mt-16">
         <div className="container mx-auto px-6 flex flex-col items-center text-center">
-          {/* Logo */}
           <div className="flex items-center justify-center mb-6">
             <img
               src={logo}
@@ -22,7 +21,6 @@ export default function App() {
             />
           </div>
 
-          {/* Links principais */}
           <div className="flex flex-wrap justify-center gap-10 font-serif font-medium text-gray-300 mb-6">
             <a
               href="https://wa.me/message/CBK3ADYAKSACP1"
@@ -55,7 +53,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Direitos autorais */}
           <div className="text-center text-sm text-gray-400 mt-6 border-t border-gray-700 pt-4">
             © {new Date().getFullYear()}{" "}
             <span className="text-yellow-500 font-semibold">Divino Estilo</span>
