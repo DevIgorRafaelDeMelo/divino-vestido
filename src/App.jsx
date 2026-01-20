@@ -55,7 +55,9 @@ export default function App() {
 
           <div className="text-center text-sm text-gray-400 mt-6 border-t border-gray-700 pt-4">
             © {new Date().getFullYear()}{" "}
-            <span className="text-yellow-500 font-semibold">Divino Estilo</span>
+            <span className="text-yellow-500 font-semibold">
+              Divino Vestido
+            </span>
             . Todos os direitos reservados.
           </div>
         </div>
