@@ -33,6 +33,7 @@ export default function AdminPage() {
     const afternoon = [14, 15, 16, 17];
     return [...morning, ...afternoon].map((hour) => ({ hour }));
   };
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
 
   const handleDateClick = async (day) => {
     setSelectedDate(day);
@@ -45,10 +46,9 @@ export default function AdminPage() {
     const querySnapshot = await getDocs(q);
     const booked = querySnapshot.docs.map((doc) => doc.data());
 
-    // 🔎 Se o dia está bloqueado, não mostra horários
     const isBlocked = booked.some((b) => b.blocked === true);
     if (isBlocked) {
-      setAvailableTimes([]); // nenhum horário disponível
+      setAvailableTimes([]);
       return;
     }
 
@@ -672,16 +672,17 @@ export default function AdminPage() {
             >
               ✕
             </button>
-
             {!selectedDate &&
               (() => {
                 const today = new Date();
-                const daysForward = Array.from({ length: 30 }, (_, i) => {
+                // Gerar 365 dias
+                const daysForward = Array.from({ length: 365 }, (_, i) => {
                   const d = new Date(today);
                   d.setDate(today.getDate() + i);
                   return d;
                 });
 
+                // Agrupar por mês
                 const grouped = daysForward.reduce((acc, day) => {
                   const monthKey = day.toLocaleDateString("pt-BR", {
                     month: "long",
@@ -692,9 +693,15 @@ export default function AdminPage() {
                   return acc;
                 }, {});
 
-                return Object.values(grouped).map((monthDays, idx) => (
-                  <div key={idx} className="mb-8">
-                    <h2 className="text-center text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">
+                const months = Object.values(grouped);
+
+                // Seleciona o mês atual
+                const monthDays = months[currentMonthIndex];
+
+                return (
+                  <div>
+                    {/* Cabeçalho do mês */}
+                    <h2 className="text-center text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wide">
                       {monthDays[0].toLocaleDateString("pt-BR", {
                         month: "long",
                         year: "numeric",
@@ -703,7 +710,8 @@ export default function AdminPage() {
 
                     <div className="border-b-2 border-yellow-500 mb-4 w-2/3 mx-auto"></div>
 
-                    <div className="grid grid-cols-5 gap-3">
+                    {/* Grid de dias */}
+                    <div className="grid grid-cols-7 gap-3">
                       {monthDays.map((day, i) => {
                         const isToday =
                           day.toDateString() === today.toDateString();
@@ -729,8 +737,32 @@ export default function AdminPage() {
                         );
                       })}
                     </div>
+
+                    {/* Botões de navegação */}
+                    <div className="flex justify-between mt-6">
+                      <button
+                        disabled={currentMonthIndex === 0}
+                        onClick={() =>
+                          setCurrentMonthIndex((prev) => Math.max(prev - 1, 0))
+                        }
+                        className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition disabled:opacity-50"
+                      >
+                        ← Mês anterior
+                      </button>
+                      <button
+                        disabled={currentMonthIndex === months.length - 1}
+                        onClick={() =>
+                          setCurrentMonthIndex((prev) =>
+                            Math.min(prev + 1, months.length - 1),
+                          )
+                        }
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition disabled:opacity-50"
+                      >
+                        Próximo mês →
+                      </button>
+                    </div>
                   </div>
-                ));
+                );
               })()}
 
             {selectedDate && (

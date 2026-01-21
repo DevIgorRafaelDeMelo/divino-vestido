@@ -14,9 +14,11 @@ export default function App() {
   const images = [Img1, Img2, Img3];
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [lastReservation, setLastReservation] = useState(null);
 
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
 
   const [formData, setFormData] = useState({
     nome: "",
@@ -43,11 +45,28 @@ export default function App() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const generateSlots = () => {
-    const morning = [9, 10, 11];
-    const afternoon = [14, 15, 16, 17];
-    return [...morning, ...afternoon].map((hour) => ({ hour }));
-  };
+  function generateSlots(selectedDate) {
+    const dayOfWeek = selectedDate.getDay();
+
+    if (dayOfWeek === 0) {
+      return [];
+    }
+
+    if (dayOfWeek === 6) {
+      const slots = [];
+      for (let hour = 9; hour < 12; hour++) {
+        slots.push({ hour });
+      }
+      return slots;
+    }
+
+    const slots = [];
+    for (let hour = 9; hour < 18; hour++) {
+      if (hour >= 12 && hour < 14) continue;
+      slots.push({ hour });
+    }
+    return slots;
+  }
 
   const handleDateClick = async (day) => {
     setSelectedDate(day);
@@ -66,7 +85,7 @@ export default function App() {
       return;
     }
 
-    const allSlots = generateSlots();
+    const allSlots = generateSlots(day);
     const available = allSlots.map((slot) => {
       const countBooked = booked.filter((b) => b.hour === slot.hour).length;
       const vagasRestantes = 2 - countBooked;
@@ -332,13 +351,17 @@ export default function App() {
             {!selectedDate &&
               (() => {
                 const today = new Date();
-                const daysForward = Array.from({ length: 30 }, (_, i) => {
+                const daysForward = Array.from({ length: 365 }, (_, i) => {
                   const d = new Date(today);
                   d.setDate(today.getDate() + i);
                   return d;
                 });
 
-                const grouped = daysForward.reduce((acc, day) => {
+                const daysWithoutSunday = daysForward.filter(
+                  (d) => d.getDay() !== 0,
+                );
+
+                const grouped = daysWithoutSunday.reduce((acc, day) => {
                   const monthKey = day.toLocaleDateString("pt-BR", {
                     month: "long",
                     year: "numeric",
@@ -348,9 +371,13 @@ export default function App() {
                   return acc;
                 }, {});
 
-                return Object.values(grouped).map((monthDays, idx) => (
-                  <div key={idx} className="mb-8">
-                    <h2 className="text-center text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wide">
+                const months = Object.values(grouped);
+
+                const monthDays = months[currentMonthIndex];
+
+                return (
+                  <div>
+                    <h2 className="text-center text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wide">
                       {monthDays[0].toLocaleDateString("pt-BR", {
                         month: "long",
                         year: "numeric",
@@ -359,7 +386,7 @@ export default function App() {
 
                     <div className="border-b-2 border-yellow-500 mb-4 w-2/3 mx-auto"></div>
 
-                    <div className="grid grid-cols-5 gap-3">
+                    <div className="grid grid-cols-7 gap-3">
                       {monthDays.map((day, i) => {
                         const isToday =
                           day.toDateString() === today.toDateString();
@@ -385,8 +412,31 @@ export default function App() {
                         );
                       })}
                     </div>
+
+                    <div className="flex justify-between mt-6">
+                      <button
+                        disabled={currentMonthIndex === 0}
+                        onClick={() =>
+                          setCurrentMonthIndex((prev) => Math.max(prev - 1, 0))
+                        }
+                        className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition disabled:opacity-50"
+                      >
+                        ← Mês anterior
+                      </button>
+                      <button
+                        disabled={currentMonthIndex === months.length - 1}
+                        onClick={() =>
+                          setCurrentMonthIndex((prev) =>
+                            Math.min(prev + 1, months.length - 1),
+                          )
+                        }
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition disabled:opacity-50"
+                      >
+                        Próximo mês →
+                      </button>
+                    </div>
                   </div>
-                ));
+                );
               })()}
 
             {selectedDate && (
@@ -472,6 +522,13 @@ export default function App() {
                         evento: formData.evento,
                         telefone: formData.telefone,
                       });
+
+                      setLastReservation({
+                        date: selectedSlot.date,
+                        hour: selectedSlot.hour,
+                        telefone: formData.telefone,
+                      });
+
                       setShowFormModal(false);
                       setShowConfirmModal(true);
 
@@ -567,16 +624,29 @@ export default function App() {
               </div>
             )}
 
-            {showConfirmModal && (
+            {showConfirmModal && lastReservation && (
               <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
                 <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
                   <h2 className="text-2xl font-bold text-yellow-500 mb-4">
                     Agendamento confirmado!
                   </h2>
+
                   <p className="text-gray-700 mb-6">
                     Seu agendamento foi registrado com sucesso.
                     <br />
-                    Entraremos em contato pelo telefone informado.
+                    Data:{" "}
+                    <span className="font-semibold text-gray-900">
+                      {lastReservation.date.toLocaleDateString("pt-BR")}
+                    </span>
+                    <br /> Horário:{" "}
+                    <span className="font-semibold text-gray-900">
+                      {lastReservation.hour}:00
+                    </span>
+                    <br />
+                    Telefone:{" "}
+                    <span className="font-semibold text-gray-900">
+                      {lastReservation.telefone}
+                    </span>
                   </p>
 
                   <button
