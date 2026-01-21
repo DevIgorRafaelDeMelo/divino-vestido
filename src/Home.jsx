@@ -58,11 +58,15 @@ export default function App() {
       where("date", "==", dateKey),
     );
     const querySnapshot = await getDocs(q);
-
     const booked = querySnapshot.docs.map((doc) => doc.data());
 
-    const allSlots = generateSlots();
+    const isBlocked = booked.some((b) => b.blocked === true);
+    if (isBlocked) {
+      setAvailableTimes([]);
+      return;
+    }
 
+    const allSlots = generateSlots();
     const available = allSlots.map((slot) => {
       const countBooked = booked.filter((b) => b.hour === slot.hour).length;
       const vagasRestantes = 2 - countBooked;
@@ -76,12 +80,10 @@ export default function App() {
     <>
       <nav className="fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-lg">
         <div className="container mx-auto px-8 flex justify-between items-center">
-          {/* Logo */}
           <div className="flex items-center space-x-3">
             <img src={logo} alt="Logo Divino Estilo" className="h-24 w-auto" />
           </div>
 
-          {/* Botão hamburguer (mobile) */}
           <button
             className="md:hidden text-yellow-600 focus:outline-none"
             onClick={() => setIsOpen(!isOpen)}
@@ -117,7 +119,6 @@ export default function App() {
             )}
           </button>
 
-          {/* Menu desktop */}
           <div className="hidden md:flex justify-center space-x-12 font-serif font-semibold text-yellow-600">
             <a
               href="#catalogo"
@@ -156,7 +157,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Menu mobile */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
             isOpen ? "max-h-screen" : "max-h-0"
@@ -391,47 +391,66 @@ export default function App() {
 
             {selectedDate && (
               <div className="mt-6 flex flex-col gap-4">
-                {availableTimes.map(({ hour, vagasRestantes }) => {
-                  const start = `${hour.toString().padStart(2, "0")}:00`;
-                  const end = `${(hour + 1).toString().padStart(2, "0")}:00`;
-
-                  return (
+                {availableTimes.length === 0 ? (
+                  <div className="flex items-center justify-center mt-6">
                     <div
-                      key={hour}
-                      className="flex items-center justify-between px-5 py-2 rounded-xl shadow-md bg-white border border-yellow-400"
+                      className="bg-gradient-to-r from-gray-100 to-gray-200 border-l-4 border-yellow-500 
+                  rounded-xl shadow-md px-6 py-4 flex items-center gap-3 w-full max-w-lg"
                     >
                       <div className="flex flex-col">
-                        <span className="text-lg font-bold text-gray-800">
-                          {start} → {end}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {vagasRestantes > 0
-                            ? `${vagasRestantes} vaga(s) disponível`
-                            : "Ocupado"}
-                        </span>
+                        <p className="text-gray-600 text-sm">
+                          Não é mais possível realizar agendamentos neste dia.
+                        </p>
                       </div>
-
-                      {vagasRestantes > 0 && (
-                        <button
-                          onClick={() => {
-                            setSelectedSlot({ date: selectedDate, hour });
-                            setShowFormModal(true);
-                          }}
-                          className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
-                        >
-                          Reservar
-                        </button>
-                      )}
                     </div>
-                  );
-                })}
+                  </div>
+                ) : (
+                  availableTimes.map(({ hour, vagasRestantes }) => {
+                    const start = `${hour.toString().padStart(2, "0")}:00`;
+                    const end = `${(hour + 1).toString().padStart(2, "0")}:00`;
 
-                <button
-                  onClick={() => setSelectedDate(null)}
-                  className="mt-6 w-full px-6 py-4 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition"
-                >
-                  ← Voltar ao calendário
-                </button>
+                    return (
+                      <div
+                        key={hour}
+                        className="flex items-center justify-between px-5 py-2 rounded-xl shadow-md bg-white border border-yellow-400"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-lg font-bold text-gray-800">
+                            {start} → {end}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {vagasRestantes > 0
+                              ? `${vagasRestantes} vaga(s) disponível`
+                              : "Ocupado"}
+                          </span>
+                        </div>
+
+                        {vagasRestantes > 0 && (
+                          <button
+                            onClick={() => {
+                              setSelectedSlot({ date: selectedDate, hour });
+                              setShowFormModal(true);
+                            }}
+                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
+                          >
+                            Reservar
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+
+                <div className="mt-6 flex gap-4">
+                  <button
+                    onClick={() => setSelectedDate(null)}
+                    className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 
+                   text-gray-700 font-semibold shadow-md hover:from-gray-300 hover:to-gray-400 
+                   transition-transform transform"
+                  >
+                    Voltar ao calendário
+                  </button>
+                </div>
               </div>
             )}
 

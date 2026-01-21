@@ -7,7 +7,7 @@ import logo from "./assets/Logo.png";
 export default function AdminPage() {
   const [appointments, setAppointments] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-
+  const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const [showFormModal, setShowFormModal] = useState(false);
@@ -43,11 +43,16 @@ export default function AdminPage() {
       where("date", "==", dateKey),
     );
     const querySnapshot = await getDocs(q);
-
     const booked = querySnapshot.docs.map((doc) => doc.data());
 
-    const allSlots = generateSlots();
+    // 🔎 Se o dia está bloqueado, não mostra horários
+    const isBlocked = booked.some((b) => b.blocked === true);
+    if (isBlocked) {
+      setAvailableTimes([]); // nenhum horário disponível
+      return;
+    }
 
+    const allSlots = generateSlots();
     const available = allSlots.map((slot) => {
       const countBooked = booked.filter((b) => b.hour === slot.hour).length;
       const vagasRestantes = 2 - countBooked;
@@ -150,7 +155,6 @@ export default function AdminPage() {
     <div className="p-6">
       <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-md border-b border-gray-200">
         <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
-          {/* Logo */}
           <div className="flex items-center space-x-3">
             <img
               src={logo}
@@ -159,7 +163,6 @@ export default function AdminPage() {
             />
           </div>
 
-          {/* Botão hamburguer (mobile) */}
           <button
             className="md:hidden text-yellow-600 focus:outline-none"
             onClick={() => setIsOpen(!isOpen)}
@@ -195,7 +198,6 @@ export default function AdminPage() {
             )}
           </button>
 
-          {/* Menu desktop */}
           <div className="hidden md:flex justify-center space-x-12 font-serif font-semibold text-yellow-600">
             <a
               href="#agendamento"
@@ -210,7 +212,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Menu mobile */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
             isOpen ? "max-h-screen" : "max-h-0"
@@ -224,7 +225,7 @@ export default function AdminPage() {
               onClick={(e) => {
                 e.preventDefault();
                 setShowCalendar(true);
-                setIsOpen(false); // fecha menu ao clicar
+                setIsOpen(false);
               }}
               className="relative text-lg transition duration-300 hover:text-yellow-500 after:content-[''] after:block after:w-0 after:h-[2px] after:bg-yellow-500 after:transition-all after:duration-300 hover:after:w-full after:mx-auto"
             >
@@ -259,6 +260,8 @@ export default function AdminPage() {
             <tbody>
               {filteredAppointments.map((a) => {
                 const isToday = a.date === today;
+                const isBlocked = a.blocked === true;
+
                 return (
                   <tr
                     key={a.id}
@@ -272,27 +275,36 @@ export default function AdminPage() {
                       {a.date}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {a.hour}:00
+                      {isBlocked ? "Bloqueado" : `${a.hour}:00`}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                      {a.nome}
+                      {isBlocked ? "Administração" : a.nome}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {a.telefone}
+                      {isBlocked ? "—" : a.telefone}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {a.evento}
+                      {isBlocked ? "Feriado/Inativo" : a.evento}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {a.pessoas}
+                      {isBlocked ? "—" : a.pessoas}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => handleDelete(a.id)}
-                        className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition text-sm font-medium"
-                      >
-                        Cancelar
-                      </button>
+                      {isBlocked ? (
+                        <button
+                          onClick={() => handleDelete(a.id)}
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
+                        >
+                          Liberar agenda
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(a.id)}
+                          className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition text-sm font-medium"
+                        >
+                          Cancelar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -311,50 +323,107 @@ export default function AdminPage() {
               Sem agendamento hoje
             </div>
           ) : (
-            todaysAppointments.map((a) => (
-              <div
-                key={a.id}
-                className="p-5 rounded-xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition"
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-semibold text-gray-700">
-                    {a.date}
-                  </span>
-                  <span className="text-sm font-semibold text-gray-700">
-                    {a.hour}:00
-                  </span>
-                </div>
+            todaysAppointments.map((a) => {
+              const isBlocked = a.blocked === true;
 
-                <div className="mb-3">
-                  <h3 className="text-lg font-bold text-gray-900">{a.nome}</h3>
-                  <p className="text-sm text-gray-500">{a.telefone}</p>
-                </div>
+              return (
+                <div
+                  key={a.id}
+                  className={`p-4 rounded-xl border shadow-md transition ${
+                    isBlocked
+                      ? "bg-gradient-to-r from-gray-100 to-gray-200 border-yellow-400"
+                      : "bg-white border-gray-200 hover:shadow-lg"
+                  }`}
+                >
+                  {isBlocked ? (
+                    <>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {a.date}
+                        </span>
+                        <span className="text-xs font-semibold text-yellow-600">
+                          🚫 Bloqueado
+                        </span>
+                      </div>
 
-                <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3 mb-3">
-                  <div>
-                    <span className="block font-medium text-gray-700">
-                      Evento
-                    </span>
-                    <span className="text-gray-600">{a.evento}</span>
-                  </div>
-                  <div>
-                    <span className="block font-medium text-gray-700">
-                      Pessoas
-                    </span>
-                    <span className="text-gray-600">{a.pessoas}</span>
-                  </div>
-                </div>
+                      <div className="mb-2 text-center">
+                        <h3 className="text-base font-bold text-gray-800">
+                          Agenda bloqueada
+                        </h3>
+                        <p className="text-xs text-gray-600">
+                          Não é possível realizar agendamentos neste dia
+                        </p>
+                      </div>
 
-                <div className="text-right">
-                  <button
-                    onClick={() => handleDelete(a.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
-                  >
-                    Cancelar
-                  </button>
+                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Evento
+                          </span>
+                          <span className="text-gray-600">Feriado/Inativo</span>
+                        </div>
+                        <div className="text-right">
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                          >
+                            Liberar agenda
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {a.date}
+                        </span>
+                        <span className="text-xs font-semibold text-gray-700">
+                          {`${a.hour}:00`}
+                        </span>
+                      </div>
+
+                      <div className="mb-2">
+                        <h3 className="text-base font-bold text-gray-900">
+                          {a.nome}
+                        </h3>
+                        <p className="text-xs text-gray-500">{a.telefone}</p>
+                      </div>
+
+                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Evento
+                          </span>
+                          <span className="text-gray-600">{a.evento}</span>
+                        </div>
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Pessoas
+                          </span>
+                          <span className="text-gray-600">{a.pessoas}</span>
+                        </div>
+                      </div>
+
+                      {isBlocked ? (
+                        <div className="text-center text-yellow-600 font-semibold text-sm">
+                          🚫 Não é possível agendar neste dia
+                        </div>
+                      ) : (
+                        <div className="text-right">
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
 
           <h2 className="text-lg font-bold text-gray-800 border-b border-yellow-500 pb-1 mt-6">
@@ -368,102 +437,221 @@ export default function AdminPage() {
                 (appointmentDate - todayDate) / (1000 * 60 * 60 * 24);
               return diff > 0 && diff <= 7;
             })
-            .map((a) => (
-              <div
-                key={a.id}
-                className="p-5 rounded-xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition"
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-semibold text-gray-700">
-                    {a.date}
-                  </span>
-                  <span className="text-sm font-semibold text-gray-700">
-                    {a.hour}:00
-                  </span>
-                </div>
+            .map((a) => {
+              const isBlocked = a.blocked === true;
 
-                <div className="mb-3">
-                  <h3 className="text-lg font-bold text-gray-900">{a.nome}</h3>
-                  <p className="text-sm text-gray-500">{a.telefone}</p>
-                </div>
+              return (
+                <div
+                  key={a.id}
+                  className={`p-4 rounded-xl border shadow-md transition ${
+                    isBlocked
+                      ? "bg-gradient-to-r from-gray-100 to-gray-200 border-yellow-400"
+                      : "bg-white border-gray-200 hover:shadow-lg"
+                  }`}
+                >
+                  {isBlocked ? (
+                    <>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {a.date}
+                        </span>
+                        <span className="text-xs font-semibold text-yellow-600">
+                          🚫 Bloqueado
+                        </span>
+                      </div>
 
-                <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3 mb-3">
-                  <div>
-                    <span className="block font-medium text-gray-700">
-                      Evento
-                    </span>
-                    <span className="text-gray-600">{a.evento}</span>
-                  </div>
-                  <div>
-                    <span className="block font-medium text-gray-700">
-                      Pessoas
-                    </span>
-                    <span className="text-gray-600">{a.pessoas}</span>
-                  </div>
-                </div>
+                      <div className="mb-2 text-center">
+                        <h3 className="text-base font-bold text-gray-800">
+                          Agenda bloqueada
+                        </h3>
+                        <p className="text-xs text-gray-600">
+                          Não é possível realizar agendamentos neste dia
+                        </p>
+                      </div>
 
-                <div className="text-right">
-                  <button
-                    onClick={() => handleDelete(a.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
-                  >
-                    Cancelar
-                  </button>
+                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Evento
+                          </span>
+                          <span className="text-gray-600">Feriado/Inativo</span>
+                        </div>
+                        <div className="text-right">
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                          >
+                            Liberar agenda
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {a.date}
+                        </span>
+                        <span className="text-xs font-semibold text-gray-700">
+                          {`${a.hour}:00`}
+                        </span>
+                      </div>
+
+                      <div className="mb-2">
+                        <h3 className="text-base font-bold text-gray-900">
+                          {a.nome}
+                        </h3>
+                        <p className="text-xs text-gray-500">{a.telefone}</p>
+                      </div>
+
+                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Evento
+                          </span>
+                          <span className="text-gray-600">{a.evento}</span>
+                        </div>
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Pessoas
+                          </span>
+                          <span className="text-gray-600">{a.pessoas}</span>
+                        </div>
+                      </div>
+
+                      {isBlocked ? (
+                        <div className="text-center text-yellow-600 font-semibold text-sm">
+                          🚫 Não é possível agendar neste dia
+                        </div>
+                      ) : (
+                        <div className="text-right">
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
+
           <h2 className="text-lg font-bold text-gray-800 border-b border-yellow-500 pb-1 mt-6">
             Demais Agendamentos
           </h2>
+
           {filteredAppointments
             .filter((a) => {
               const todayDate = new Date(today);
               const appointmentDate = new Date(a.date);
               const diff =
                 (appointmentDate - todayDate) / (1000 * 60 * 60 * 24);
-              return diff > 7;
+              return diff > 7; // Demais
             })
-            .map((a) => (
-              <div
-                key={a.id}
-                className="p-5 rounded-xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition"
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-semibold text-gray-700">
-                    {a.date}
-                  </span>
-                  <span className="text-sm font-semibold text-gray-700">
-                    {a.hour}:00
-                  </span>
+            .map((a) => {
+              const isBlocked = a.blocked === true;
+
+              return (
+                <div
+                  key={a.id}
+                  className={`p-4 rounded-xl border shadow-md transition ${
+                    isBlocked
+                      ? "bg-gradient-to-r from-gray-100 to-gray-200 border-yellow-400"
+                      : "bg-white border-gray-200 hover:shadow-lg"
+                  }`}
+                >
+                  {isBlocked ? (
+                    <>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {a.date}
+                        </span>
+                        <span className="text-xs font-semibold text-yellow-600">
+                          🚫 Bloqueado
+                        </span>
+                      </div>
+
+                      <div className="mb-2 text-center">
+                        <h3 className="text-base font-bold text-gray-800">
+                          Agenda bloqueada
+                        </h3>
+                        <p className="text-xs text-gray-600">
+                          Não é possível realizar agendamentos neste dia
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Evento
+                          </span>
+                          <span className="text-gray-600">Feriado/Inativo</span>
+                        </div>
+                        <div className="text-right">
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                          >
+                            Liberar agenda
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {a.date}
+                        </span>
+                        <span className="text-xs font-semibold text-gray-700">
+                          {`${a.hour}:00`}
+                        </span>
+                      </div>
+
+                      <div className="mb-2">
+                        <h3 className="text-base font-bold text-gray-900">
+                          {a.nome}
+                        </h3>
+                        <p className="text-xs text-gray-500">{a.telefone}</p>
+                      </div>
+
+                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Evento
+                          </span>
+                          <span className="text-gray-600">{a.evento}</span>
+                        </div>
+                        <div>
+                          <span className="block font-medium text-gray-700">
+                            Pessoas
+                          </span>
+                          <span className="text-gray-600">{a.pessoas}</span>
+                        </div>
+                      </div>
+
+                      {isBlocked ? (
+                        <div className="text-center text-yellow-600 font-semibold text-sm">
+                          🚫 Não é possível agendar neste dia
+                        </div>
+                      ) : (
+                        <div className="text-right">
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-                <div className="mb-3">
-                  <h3 className="text-lg font-bold text-gray-900">{a.nome}</h3>
-                  <p className="text-sm text-gray-500">{a.telefone}</p>
-                </div>
-                <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3 mb-3">
-                  <div>
-                    <span className="block font-medium text-gray-700">
-                      Evento
-                    </span>
-                    <span className="text-gray-600">{a.evento}</span>
-                  </div>
-                  <div>
-                    <span className="block font-medium text-gray-700">
-                      Pessoas
-                    </span>
-                    <span className="text-gray-600">{a.pessoas}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <button
-                    onClick={() => handleDelete(a.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       </div>
 
@@ -547,47 +735,87 @@ export default function AdminPage() {
 
             {selectedDate && (
               <div className="mt-6 flex flex-col gap-4">
-                {availableTimes.map(({ hour, vagasRestantes }) => {
-                  const start = `${hour.toString().padStart(2, "0")}:00`;
-                  const end = `${(hour + 1).toString().padStart(2, "0")}:00`;
-
-                  return (
+                {availableTimes.length === 0 ? (
+                  <div className="flex items-center justify-center mt-6">
                     <div
-                      key={hour}
-                      className="flex items-center justify-between px-5 py-2 rounded-xl shadow-md bg-white border border-yellow-400"
+                      className="bg-gradient-to-r from-gray-100 to-gray-200 border-l-4 border-yellow-500 
+                  rounded-xl shadow-md px-6 py-4 flex items-center gap-3 w-full max-w-lg"
                     >
+                      <span className="text-yellow-600 text-2xl">⚠️</span>
                       <div className="flex flex-col">
-                        <span className="text-lg font-bold text-gray-800">
-                          {start} → {end}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {vagasRestantes > 0
-                            ? `${vagasRestantes} vaga(s) disponível`
-                            : "Ocupado"}
-                        </span>
+                        <h3 className="text-gray-800 font-bold text-lg">
+                          Agenda bloqueada
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          Não é mais possível realizar agendamentos neste dia.
+                        </p>
                       </div>
-
-                      {vagasRestantes > 0 && (
-                        <button
-                          onClick={() => {
-                            setSelectedSlot({ date: selectedDate, hour });
-                            setShowFormModal(true);
-                          }}
-                          className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
-                        >
-                          Reservar
-                        </button>
-                      )}
                     </div>
-                  );
-                })}
+                  </div>
+                ) : (
+                  availableTimes.map(({ hour, vagasRestantes }) => {
+                    const start = `${hour.toString().padStart(2, "0")}:00`;
+                    const end = `${(hour + 1).toString().padStart(2, "0")}:00`;
 
-                <button
-                  onClick={() => setSelectedDate(null)}
-                  className="mt-6 w-full px-6 py-4 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition"
-                >
-                  ← Voltar ao calendário
-                </button>
+                    return (
+                      <div
+                        key={hour}
+                        className="flex items-center justify-between px-5 py-2 rounded-xl shadow-md bg-white border border-yellow-400"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-lg font-bold text-gray-800">
+                            {start} → {end}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {vagasRestantes > 0
+                              ? `${vagasRestantes} vaga(s) disponível`
+                              : "Ocupado"}
+                          </span>
+                        </div>
+
+                        {vagasRestantes > 0 && (
+                          <button
+                            onClick={() => {
+                              setSelectedSlot({ date: selectedDate, hour });
+                              setShowFormModal(true);
+                            }}
+                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
+                          >
+                            Reservar
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+
+                <div className="mt-6 flex gap-4">
+                  <button
+                    onClick={async () => {
+                      const dateKey = selectedDate.toISOString().split("T")[0];
+                      await addDoc(collection(db, "appointments"), {
+                        date: dateKey,
+                        blocked: true,
+                      });
+                      setSelectedDate(null);
+                      setShowBlockConfirmModal(true);
+                    }}
+                    className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-gray-400 to-gray-500 
+                   text-white font-semibold shadow-md hover:from-gray-500 hover:to-gray-600 
+                   transition-transform transform hover:scale-105"
+                  >
+                    Bloquear agenda do dia
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedDate(null)}
+                    className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 
+                   text-gray-700 font-semibold shadow-md hover:from-gray-300 hover:to-gray-400 
+                   transition-transform transform"
+                  >
+                    ← Voltar ao calendário
+                  </button>
+                </div>
               </div>
             )}
 
@@ -719,6 +947,28 @@ export default function AdminPage() {
                   <button
                     onClick={() => setShowConfirmModal(false)}
                     className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {showBlockConfirmModal && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                    Agenda bloqueada!
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Todos os horários deste dia foram bloqueados e não estão
+                    mais disponíveis para agendamento.
+                  </p>
+
+                  <button
+                    onClick={() => setShowBlockConfirmModal(false)}
+                    className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 
+                   text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
                   >
                     Fechar
                   </button>
