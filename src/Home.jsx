@@ -348,9 +348,10 @@ export default function App() {
 
             <button
               onClick={() => {
+                setShowCalendar(false);
                 setSelectedDate(null);
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition transform hover:scale-110"
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition transform hover:scale-110 text-2xl"
             >
               ✕
             </button>
