@@ -348,10 +348,9 @@ export default function App() {
 
             <button
               onClick={() => {
-                setShowCalendar(false);
                 setSelectedDate(null);
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition transform hover:scale-110"
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition transform hover:scale-110 text-2xl"
             >
               ✕
             </button>
@@ -502,17 +501,6 @@ export default function App() {
                     );
                   })
                 )}
-
-                <div className="mt-6 flex gap-4">
-                  <button
-                    onClick={() => setSelectedDate(null)}
-                    className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 
-        text-gray-700 font-semibold shadow-md hover:from-gray-300 hover:to-gray-400 
-        transition-transform transform"
-                  >
-                    Voltar ao calendário
-                  </button>
-                </div>
               </div>
             )}
 
@@ -550,6 +538,25 @@ export default function App() {
                         evento: "",
                         telefone: "",
                       });
+
+                      await fetch(
+                        "https://graph.facebook.com/v17.0/5551998927775/messages",
+                        {
+                          method: "POST",
+                          headers: {
+                            Authorization: "Bearer YOUR_ACCESS_TOKEN",
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            messaging_product: "whatsapp",
+                            to: "5551998927775",
+                            type: "text",
+                            text: {
+                              body: `Nova reserva confirmada!\nNome: ${formData.nome}\nEvento: ${formData.evento}\nData: ${selectedSlot.date.toISOString().split("T")[0]} às ${selectedSlot.hour}:00\nPessoas: ${formData.pessoas}\nTelefone: ${formData.telefone}`,
+                            },
+                          }),
+                        },
+                      );
                     }}
                     className="flex flex-col gap-4"
                   >
