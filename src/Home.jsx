@@ -350,7 +350,7 @@ export default function App() {
               onClick={() => {
                 setSelectedDate(null);
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition transform hover:scale-110 text-2xl"
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition transform hover:scale-110"
             >
               ✕
             </button>
@@ -635,7 +635,7 @@ export default function App() {
 
                   <button
                     onClick={() => setShowFormModal(false)}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500"
                   >
                     ✕
                   </button>
