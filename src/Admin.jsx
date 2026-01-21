@@ -5,6 +5,9 @@ import { db } from "./firebase";
 import logo from "./assets/Logo.png";
 
 export default function AdminPage() {
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+
   const [appointments, setAppointments] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
@@ -332,12 +335,17 @@ export default function AdminPage() {
                           Liberar agenda
                         </button>
                       ) : (
-                        <button
-                          onClick={() => handleDelete(a.id)}
-                          className="bg-yellow-600  text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition text-sm font-medium"
-                        >
-                          Cancelar
-                        </button>
+                        <div className="text-right">
+                          <button
+                            onClick={() => {
+                              setAppointmentToCancel(a.id);
+                              setShowCancelConfirmModal(true);
+                            }}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -449,7 +457,10 @@ export default function AdminPage() {
 
                       <div className="text-right">
                         <button
-                          onClick={() => handleDelete(a.id)}
+                          onClick={() => {
+                            setAppointmentToCancel(a.id); // guarda o id do agendamento
+                            setShowCancelConfirmModal(true); // abre o modal
+                          }}
                           className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
                         >
                           Cancelar
@@ -561,12 +572,17 @@ export default function AdminPage() {
                         </div>
                       ) : (
                         <div className="text-right">
-                          <button
-                            onClick={() => handleDelete(a.id)}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
-                          >
-                            Cancelar
-                          </button>
+                          <div className="text-right">
+                            <button
+                              onClick={() => {
+                                setAppointmentToCancel(a.id);
+                                setShowCancelConfirmModal(true);
+                              }}
+                              className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
                         </div>
                       )}
                     </>
@@ -676,7 +692,10 @@ export default function AdminPage() {
                       ) : (
                         <div className="text-right">
                           <button
-                            onClick={() => handleDelete(a.id)}
+                            onClick={() => {
+                              setAppointmentToCancel(a.id);
+                              setShowCancelConfirmModal(true);
+                            }}
                             className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
                           >
                             Cancelar
@@ -1105,6 +1124,38 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {showCancelConfirmModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Confirmar cancelamento
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Tem certeza que deseja cancelar este agendamento?
+            </p>
+
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => {
+                  handleDelete(appointmentToCancel);
+                  setShowCancelConfirmModal(false);
+                }}
+                className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-red-600 hover:to-red-700 transition"
+              >
+                Confirmar
+              </button>
+
+              <button
+                onClick={() => setShowCancelConfirmModal(false)}
+                className="px-6 py-3 rounded-lg bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 font-semibold hover:from-gray-400 hover:to-gray-500 transition"
+              >
+                Fechar
+              </button>
+            </div>
           </div>
         </div>
       )}
