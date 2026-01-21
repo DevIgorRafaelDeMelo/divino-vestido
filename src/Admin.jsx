@@ -9,6 +9,11 @@ export default function AdminPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [blockedDate, setBlockedDate] = useState(null);
+
+  const [showHourBlockConfirmModal, setShowHourBlockConfirmModal] =
+    useState(false);
+  const [blockedHour, setBlockedHour] = useState(null);
 
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -46,21 +51,31 @@ export default function AdminPage() {
     const querySnapshot = await getDocs(q);
     const booked = querySnapshot.docs.map((doc) => doc.data());
 
-    const isBlocked = booked.some((b) => b.blocked === true);
-    if (isBlocked) {
+    // Bloqueio do dia inteiro (sem hour)
+    const isDayBlocked = booked.some((b) => b.blocked === true && !b.hour);
+    if (isDayBlocked) {
       setAvailableTimes([]);
       return;
     }
 
-    const allSlots = generateSlots();
+    const allSlots = generateSlots(day);
     const available = allSlots.map((slot) => {
-      const countBooked = booked.filter((b) => b.hour === slot.hour).length;
-      const vagasRestantes = 2 - countBooked;
-      return { ...slot, vagasRestantes };
+      const blockedHour = booked.some(
+        (b) => b.hour === slot.hour && b.blocked === true,
+      );
+
+      const countBooked = booked.filter(
+        (b) => b.hour === slot.hour && !b.blocked,
+      ).length;
+
+      const vagasRestantes = blockedHour ? 0 : 2 - countBooked;
+
+      return { ...slot, vagasRestantes, blocked: blockedHour };
     });
 
     setAvailableTimes(available);
   };
+
   useEffect(() => {
     const fetchAppointments = async () => {
       const querySnapshot = await getDocs(collection(db, "appointments"));
@@ -81,16 +96,18 @@ export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [credentials, setCredentials] = useState({ user: "", pass: "" });
 
+  const fetchAppointments = async () => {
+    const querySnapshot = await getDocs(collection(db, "appointments"));
+    const data = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    setAppointments(data);
+  };
+
   useEffect(() => {
     if (isLoggedIn) {
-      const fetchAppointments = async () => {
-        const querySnapshot = await getDocs(collection(db, "appointments"));
-        const data = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setAppointments(data);
-      };
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchAppointments();
     }
   }, [isLoggedIn]);
@@ -262,6 +279,9 @@ export default function AdminPage() {
                 const isToday = a.date === today;
                 const isBlocked = a.blocked === true;
 
+                const isDayBlocked = isBlocked && !a.hour;
+                const isHourBlocked = isBlocked && a.hour;
+
                 return (
                   <tr
                     key={a.id}
@@ -274,33 +294,47 @@ export default function AdminPage() {
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {a.date}
                     </td>
+
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {isBlocked ? "Bloqueado" : `${a.hour}:00`}
+                      {isDayBlocked
+                        ? "Dia bloqueado"
+                        : isHourBlocked
+                          ? `${a.hour}:00`
+                          : `${a.hour}:00`}
                     </td>
+
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                       {isBlocked ? "Administração" : a.nome}
                     </td>
+
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {isBlocked ? "—" : a.telefone}
                     </td>
+
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {isBlocked ? "Feriado/Inativo" : a.evento}
+                      {isDayBlocked
+                        ? "Feriado/Inativo"
+                        : isHourBlocked
+                          ? "Horário indisponível"
+                          : a.evento}
                     </td>
+
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {isBlocked ? "—" : a.pessoas}
                     </td>
+
                     <td className="px-6 py-4 text-center">
                       {isBlocked ? (
                         <button
                           onClick={() => handleDelete(a.id)}
-                          className="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition font-medium text-sm"
+                          className="bg-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-700 transition font-medium text-sm"
                         >
                           Liberar agenda
                         </button>
                       ) : (
                         <button
                           onClick={() => handleDelete(a.id)}
-                          className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition text-sm font-medium"
+                          className="bg-yellow-600  text-white px-4 py-2 rounded-md shadow hover:bg-red-600 transition text-sm font-medium"
                         >
                           Cancelar
                         </button>
@@ -348,10 +382,14 @@ export default function AdminPage() {
 
                       <div className="mb-2 text-center">
                         <h3 className="text-base font-bold text-gray-800">
-                          Agenda bloqueada
+                          {a.hour
+                            ? `Horário bloqueado: ${a.hour}:00`
+                            : "Agenda bloqueada"}
                         </h3>
                         <p className="text-xs text-gray-600">
-                          Não é possível realizar agendamentos neste dia
+                          {a.hour
+                            ? "Não é possível realizar agendamentos neste horário"
+                            : "Não é possível realizar agendamentos neste dia"}
                         </p>
                       </div>
 
@@ -360,7 +398,11 @@ export default function AdminPage() {
                           <span className="block font-medium text-gray-700">
                             Evento
                           </span>
-                          <span className="text-gray-600">Feriado/Inativo</span>
+                          <span className="text-gray-600">
+                            {a.hour
+                              ? "Horário indisponível"
+                              : "Feriado/Inativo"}
+                          </span>
                         </div>
                         <div className="text-right">
                           <button
@@ -405,20 +447,14 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      {isBlocked ? (
-                        <div className="text-center text-yellow-600 font-semibold text-sm">
-                          🚫 Não é possível agendar neste dia
-                        </div>
-                      ) : (
-                        <div className="text-right">
-                          <button
-                            onClick={() => handleDelete(a.id)}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      )}
+                      <div className="text-right">
+                        <button
+                          onClick={() => handleDelete(a.id)}
+                          className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -675,14 +711,12 @@ export default function AdminPage() {
             {!selectedDate &&
               (() => {
                 const today = new Date();
-                // Gerar 365 dias
                 const daysForward = Array.from({ length: 365 }, (_, i) => {
                   const d = new Date(today);
                   d.setDate(today.getDate() + i);
                   return d;
                 });
 
-                // Agrupar por mês
                 const grouped = daysForward.reduce((acc, day) => {
                   const monthKey = day.toLocaleDateString("pt-BR", {
                     month: "long",
@@ -695,12 +729,10 @@ export default function AdminPage() {
 
                 const months = Object.values(grouped);
 
-                // Seleciona o mês atual
                 const monthDays = months[currentMonthIndex];
 
                 return (
                   <div>
-                    {/* Cabeçalho do mês */}
                     <h2 className="text-center text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wide">
                       {monthDays[0].toLocaleDateString("pt-BR", {
                         month: "long",
@@ -710,7 +742,6 @@ export default function AdminPage() {
 
                     <div className="border-b-2 border-yellow-500 mb-4 w-2/3 mx-auto"></div>
 
-                    {/* Grid de dias */}
                     <div className="grid grid-cols-7 gap-3">
                       {monthDays.map((day, i) => {
                         const isToday =
@@ -738,7 +769,6 @@ export default function AdminPage() {
                       })}
                     </div>
 
-                    {/* Botões de navegação */}
                     <div className="flex justify-between mt-6">
                       <button
                         disabled={currentMonthIndex === 0}
@@ -771,7 +801,7 @@ export default function AdminPage() {
                   <div className="flex items-center justify-center mt-6">
                     <div
                       className="bg-gradient-to-r from-gray-100 to-gray-200 border-l-4 border-yellow-500 
-                  rounded-xl shadow-md px-6 py-4 flex items-center gap-3 w-full max-w-lg"
+          rounded-xl shadow-md px-6 py-4 flex items-center gap-3 w-full max-w-lg"
                     >
                       <span className="text-yellow-600 text-2xl">⚠️</span>
                       <div className="flex flex-col">
@@ -785,9 +815,11 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ) : (
-                  availableTimes.map(({ hour, vagasRestantes }) => {
+                  availableTimes.map(({ hour, vagasRestantes, blocked }) => {
                     const start = `${hour.toString().padStart(2, "0")}:00`;
                     const end = `${(hour + 1).toString().padStart(2, "0")}:00`;
+
+                    const isOcupado = vagasRestantes <= 0 || blocked;
 
                     return (
                       <div
@@ -799,22 +831,24 @@ export default function AdminPage() {
                             {start} → {end}
                           </span>
                           <span className="text-sm text-gray-500">
-                            {vagasRestantes > 0
-                              ? `${vagasRestantes} vaga(s) disponível`
-                              : "Ocupado"}
+                            {isOcupado
+                              ? "Ocupado"
+                              : `${vagasRestantes} vaga(s) disponível`}
                           </span>
                         </div>
 
-                        {vagasRestantes > 0 && (
-                          <button
-                            onClick={() => {
-                              setSelectedSlot({ date: selectedDate, hour });
-                              setShowFormModal(true);
-                            }}
-                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
-                          >
-                            Reservar
-                          </button>
+                        {!isOcupado && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedSlot({ date: selectedDate, hour });
+                                setShowFormModal(true);
+                              }}
+                              className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
+                            >
+                              Reservar
+                            </button>
+                          </div>
                         )}
                       </div>
                     );
@@ -833,8 +867,8 @@ export default function AdminPage() {
                       setShowBlockConfirmModal(true);
                     }}
                     className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-gray-400 to-gray-500 
-                   text-white font-semibold shadow-md hover:from-gray-500 hover:to-gray-600 
-                   transition-transform transform hover:scale-105"
+        text-white font-semibold shadow-md hover:from-gray-500 hover:to-gray-600 
+        transition-transform transform hover:scale-105"
                   >
                     Bloquear agenda do dia
                   </button>
@@ -842,8 +876,8 @@ export default function AdminPage() {
                   <button
                     onClick={() => setSelectedDate(null)}
                     className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 
-                   text-gray-700 font-semibold shadow-md hover:from-gray-300 hover:to-gray-400 
-                   transition-transform transform"
+        text-gray-700 font-semibold shadow-md hover:from-gray-300 hover:to-gray-400 
+        transition-transform transform"
                   >
                     ← Voltar ao calendário
                   </button>
@@ -952,6 +986,26 @@ export default function AdminPage() {
                     >
                       Confirmar Reserva
                     </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const dateKey = selectedSlot.date
+                          .toISOString()
+                          .split("T")[0];
+                        await addDoc(collection(db, "appointments"), {
+                          date: dateKey,
+                          hour: selectedSlot.hour,
+                          blocked: true,
+                        });
+                        setBlockedDate(dateKey);
+                        setBlockedHour(selectedSlot.hour);
+                        setShowFormModal(false);
+                        setShowHourBlockConfirmModal(true);
+                      }}
+                      className="bg-gradient-to-r from-gray-400 to-gray-500 text-white font-semibold py-2 rounded-lg hover:from-gray-500 hover:to-gray-600"
+                    >
+                      Bloquear este horário
+                    </button>
                   </form>
 
                   <button
@@ -963,7 +1017,6 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
-
             {showConfirmModal && (
               <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
                 <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
@@ -977,7 +1030,12 @@ export default function AdminPage() {
                   </p>
 
                   <button
-                    onClick={() => setShowConfirmModal(false)}
+                    onClick={() => {
+                      setShowConfirmModal(false);
+                      fetchAppointments();
+                      setShowCalendar(false);
+                      setSelectedDate(null);
+                    }}
                     className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
                   >
                     Fechar
@@ -998,9 +1056,49 @@ export default function AdminPage() {
                   </p>
 
                   <button
-                    onClick={() => setShowBlockConfirmModal(false)}
+                    onClick={() => {
+                      setShowBlockConfirmModal(false);
+                      fetchAppointments();
+                      setShowCalendar(false);
+                      setSelectedDate(null);
+                    }}
                     className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 
                    text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {showHourBlockConfirmModal && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+                <div className="relative bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md text-center">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                    Horário bloqueado!
+                  </h2>
+
+                  <p className="text-gray-600 mb-6">
+                    O horário{" "}
+                    <span className="font-semibold text-gray-900">
+                      {blockedHour}:00
+                    </span>{" "}
+                    do dia{" "}
+                    <span className="font-semibold text-gray-900">
+                      {blockedDate}
+                    </span>{" "}
+                    foi bloqueado e não está mais disponível para agendamento.
+                  </p>
+
+                  <button
+                    onClick={() => {
+                      setShowHourBlockConfirmModal(false);
+                      fetchAppointments();
+                      setShowCalendar(false);
+                      setSelectedDate(null);
+                    }}
+                    className="px-6 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 
+          text-white font-semibold hover:from-yellow-600 hover:to-yellow-700 transition"
                   >
                     Fechar
                   </button>
