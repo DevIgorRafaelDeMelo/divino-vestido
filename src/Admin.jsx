@@ -133,6 +133,15 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+    if (showDropdown && notifications.length === 0) {
+      const timer = setTimeout(() => {
+        setShowDropdown(false);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [showDropdown, notifications]);
+
+  useEffect(() => {
     if (isLoggedIn) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchAppointments();
