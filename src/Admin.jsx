@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { addDoc, query, where } from "firebase/firestore";
 import { db } from "./firebase";
 import logo from "./assets/Logo.png";
@@ -9,7 +15,6 @@ export default function AdminPage() {
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
 
   const [appointments, setAppointments] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
   const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [blockedDate, setBlockedDate] = useState(null);
@@ -107,6 +112,25 @@ export default function AdminPage() {
     }));
     setAppointments(data);
   };
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const snapshot = await getDocs(collection(db, "appointments"));
+      const data = snapshot.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((item) => item.notify === true);
+      setNotifications(data);
+    };
+    fetchNotifications();
+  }, []);
+
+  const markAsRead = async (id) => {
+    await updateDoc(doc(db, "appointments", id), { notify: false });
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -183,41 +207,6 @@ export default function AdminPage() {
             />
           </div>
 
-          <button
-            className="md:hidden text-yellow-600 focus:outline-none"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            )}
-          </button>
-
           <div className="hidden md:flex justify-center space-x-12 font-serif font-semibold text-yellow-600">
             <a
               href="#agendamento"
@@ -225,16 +214,116 @@ export default function AdminPage() {
                 e.preventDefault();
                 setShowCalendar(!showCalendar);
               }}
-              className="relative transition duration-300 hover:text-yellow-500 after:content-[''] after:block after:w-0 after:h-[2px] after:bg-yellow-500 after:transition-all after:duration-300 hover:after:w-full after:mx-auto"
+              className="relative transition duration-300 hover:text-yellow-500 after:block after:w-0 after:h-[2px] after:bg-yellow-500 hover:after:w-full after:mx-auto"
             >
               Agendar
             </a>
+          </div>
+
+          <div className="flex justify-end items-center space-x-6 relative">
+            <div className="relative pt-2">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="relative focus:outline-none"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-700 hover:text-yellow-600 transition"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 
+              6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 
+              6.165 6 8.388 6 11v3.159c0 .538-.214 
+              1.055-.595 1.436L4 17h5m6 0v1a3 3 
+              0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                {notifications.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-2">
+                    {notifications.length}
+                  </span>
+                )}
+              </button>
+
+              {showDropdown && (
+                <div className="absolute right-0 mt-3 w-80 bg-white shadow-2xl rounded-xl border border-gray-200 z-50">
+                  <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-t-xl border-b border-gray-200">
+                    <span className="font-serif font-semibold text-gray-800">
+                      Novos Agendamentos
+                    </span>
+                  </div>
+
+                  <ul className="max-h-64 overflow-y-auto divide-y divide-gray-100 scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-gray-100">
+                    {notifications.length === 0 ? (
+                      <li className="p-6 text-center text-gray-500 text-sm italic">
+                        Sem novas notificações
+                      </li>
+                    ) : (
+                      notifications.map((n) => (
+                        <li
+                          key={n.id}
+                          className="p-4 hover:bg-yellow-50 hover:shadow-md transition rounded-lg cursor-pointer"
+                          onClick={() => markAsRead(n.id)}
+                        >
+                          <p className="text-sm font-serif text-gray-800 font-medium">
+                            {n.nome} — {n.evento}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {n.date} às {n.hour}:00
+                          </p>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <button
+              className="md:hidden text-yellow-600 focus:outline-none"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              {menuOpen ? (
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
         <div
           className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out ${
-            isOpen ? "max-h-screen" : "max-h-0"
+            menuOpen ? "max-h-screen" : "max-h-0"
           } bg-white shadow-lg`}
         >
           <div className="border-t border-yellow-600 w-4/5 mx-auto mt-2"></div>
@@ -245,9 +334,9 @@ export default function AdminPage() {
               onClick={(e) => {
                 e.preventDefault();
                 setShowCalendar(true);
-                setIsOpen(false);
+                setMenuOpen(false);
               }}
-              className="relative text-lg transition duration-300 hover:text-yellow-500 after:content-[''] after:block after:w-0 after:h-[2px] after:bg-yellow-500 after:transition-all after:duration-300 hover:after:w-full after:mx-auto"
+              className="relative text-lg transition duration-300 hover:text-yellow-500 after:block after:w-0 after:h-[2px] after:bg-yellow-500 hover:after:w-full after:mx-auto"
             >
               Fazer agendamento
             </a>
@@ -601,7 +690,7 @@ export default function AdminPage() {
               const appointmentDate = new Date(a.date);
               const diff =
                 (appointmentDate - todayDate) / (1000 * 60 * 60 * 24);
-              return diff > 7; // Demais
+              return diff > 7;
             })
             .map((a) => {
               const isBlocked = a.blocked === true;

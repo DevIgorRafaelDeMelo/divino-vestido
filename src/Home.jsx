@@ -522,12 +522,14 @@ export default function App() {
                         pessoas: formData.pessoas,
                         evento: formData.evento,
                         telefone: formData.telefone,
+                        notify: true,
                       });
 
                       setLastReservation({
                         date: selectedSlot.date,
                         hour: selectedSlot.hour,
                         telefone: formData.telefone,
+                        notify: true,
                       });
 
                       setShowFormModal(false);
@@ -539,25 +541,6 @@ export default function App() {
                         evento: "",
                         telefone: "",
                       });
-
-                      await fetch(
-                        "https://graph.facebook.com/v17.0/5551998927775/messages",
-                        {
-                          method: "POST",
-                          headers: {
-                            Authorization: "Bearer YOUR_ACCESS_TOKEN",
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            messaging_product: "whatsapp",
-                            to: "5551998927775",
-                            type: "text",
-                            text: {
-                              body: `Nova reserva confirmada!\nNome: ${formData.nome}\nEvento: ${formData.evento}\nData: ${selectedSlot.date.toISOString().split("T")[0]} às ${selectedSlot.hour}:00\nPessoas: ${formData.pessoas}\nTelefone: ${formData.telefone}`,
-                            },
-                          }),
-                        },
-                      );
                     }}
                     className="flex flex-col gap-4"
                   >
