@@ -11,42 +11,46 @@ import { db } from "./firebase";
 import logo from "./assets/Logo.png";
 
 export default function AdminPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [credentials, setCredentials] = useState({ user: "", pass: "" });
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
-
   const [appointments, setAppointments] = useState([]);
   const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [blockedDate, setBlockedDate] = useState(null);
-
   const [showHourBlockConfirmModal, setShowHourBlockConfirmModal] =
     useState(false);
   const [blockedHour, setBlockedHour] = useState(null);
-
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
-
   const [formData, setFormData] = useState({
     nome: "",
     pessoas: "",
     evento: "",
     telefone: "",
   });
-
   const today = new Date();
   const startDay = new Date(today);
   startDay.setDate(today.getDate());
-
   const [availableTimes, setAvailableTimes] = useState([]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+  const today1 = new Date().toISOString().split("T")[0];
+  const filteredAppointments = appointments
+    .filter((a) => a.date >= today1)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todaysAppointments = appointments.filter((a) => a.date === todayStr);
   const generateSlots = () => {
     const morning = [9, 10, 11];
     const afternoon = [14, 15, 16, 17];
     return [...morning, ...afternoon].map((hour) => ({ hour }));
   };
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
 
   const handleDateClick = async (day) => {
     setSelectedDate(day);
@@ -58,8 +62,6 @@ export default function AdminPage() {
     );
     const querySnapshot = await getDocs(q);
     const booked = querySnapshot.docs.map((doc) => doc.data());
-
-    // Bloqueio do dia inteiro (sem hour)
     const isDayBlocked = booked.some((b) => b.blocked === true && !b.hour);
     if (isDayBlocked) {
       setAvailableTimes([]);
@@ -84,25 +86,10 @@ export default function AdminPage() {
     setAvailableTimes(available);
   };
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      const querySnapshot = await getDocs(collection(db, "appointments"));
-      const data = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setAppointments(data);
-    };
-    fetchAppointments();
-  }, []);
-
   const handleDelete = async (id) => {
     await deleteDoc(doc(db, "appointments", id));
     setAppointments((prev) => prev.filter((a) => a.id !== id));
   };
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [credentials, setCredentials] = useState({ user: "", pass: "" });
 
   const fetchAppointments = async () => {
     const querySnapshot = await getDocs(collection(db, "appointments"));
@@ -112,41 +99,11 @@ export default function AdminPage() {
     }));
     setAppointments(data);
   };
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      const snapshot = await getDocs(collection(db, "appointments"));
-      const data = snapshot.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((item) => item.notify === true);
-      setNotifications(data);
-    };
-    fetchNotifications();
-  }, []);
 
   const markAsRead = async (id) => {
     await updateDoc(doc(db, "appointments", id), { notify: false });
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
-
-  useEffect(() => {
-    if (showDropdown && notifications.length === 0) {
-      const timer = setTimeout(() => {
-        setShowDropdown(false);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [showDropdown, notifications]);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchAppointments();
-    }
-  }, [isLoggedIn]);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -156,14 +113,55 @@ export default function AdminPage() {
       alert("Usuário ou senha inválidos");
     }
   };
-  const today1 = new Date().toISOString().split("T")[0];
 
-  const filteredAppointments = appointments
-    .filter((a) => a.date >= today1)
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
-  const todayStr = new Date().toISOString().split("T")[0];
+  const fetchNotifications = async () => {
+    const snapshot = await getDocs(collection(db, "appointments"));
+    const data = snapshot.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((item) => item.notify === true);
+    setNotifications(data);
+  };
 
-  const todaysAppointments = appointments.filter((a) => a.date === todayStr);
+  useEffect(() => {
+    let intervalAppointments;
+    let intervalNotifications;
+
+    if (isLoggedIn) {
+      fetchAppointments();
+      fetchNotifications();
+
+      intervalAppointments = setInterval(fetchAppointments, 1000);
+      intervalNotifications = setInterval(fetchNotifications, 1000);
+    }
+
+    return () => {
+      clearInterval(intervalAppointments);
+      clearInterval(intervalNotifications);
+    };
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (showDropdown && notifications.length === 0) {
+      const timer = setTimeout(() => setShowDropdown(false), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [showDropdown, notifications]);
+
+  useEffect(() => {
+    let interval;
+
+    if (isLoggedIn) {
+      fetchAppointments();
+      fetchNotifications();
+
+      interval = setInterval(() => {
+        fetchAppointments();
+        fetchNotifications();
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
 
   if (!isLoggedIn) {
     return (
