@@ -9,6 +9,7 @@ import {
 import { addDoc, query, where } from "firebase/firestore";
 import { db } from "./firebase";
 import logo from "./assets/Logo.png";
+import { ChevronDownIcon } from "@heroicons/react/24/solid";
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -51,6 +52,7 @@ export default function AdminPage() {
     const afternoon = [14, 15, 16, 17];
     return [...morning, ...afternoon].map((hour) => ({ hour }));
   };
+  const [openCardId, setOpenCardId] = useState(null);
 
   const handleDateClick = async (day) => {
     setSelectedDate(day);
@@ -100,6 +102,11 @@ export default function AdminPage() {
     setAppointments(data);
   };
 
+  function formatDate(dateString) {
+    const options = { day: "2-digit", month: "long", year: "numeric" };
+    return new Date(dateString).toLocaleDateString("pt-BR", options);
+  }
+
   const markAsRead = async (id) => {
     await updateDoc(doc(db, "appointments", id), { notify: false });
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -127,6 +134,7 @@ export default function AdminPage() {
     let intervalNotifications;
 
     if (isLoggedIn) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchAppointments();
       fetchNotifications();
 
@@ -151,6 +159,7 @@ export default function AdminPage() {
     let interval;
 
     if (isLoggedIn) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchAppointments();
       fetchNotifications();
 
@@ -463,105 +472,122 @@ export default function AdminPage() {
           ) : (
             todaysAppointments.map((a) => {
               const isBlocked = a.blocked === true;
+              const isOpen = openCardId === a.id;
 
               return (
                 <div
                   key={a.id}
-                  className={`p-4 rounded-xl border shadow-md transition ${
+                  className={`relative p-4 rounded-xl border-2 shadow-md transition cursor-pointer ${
                     isBlocked
                       ? "bg-gradient-to-r from-gray-100 to-gray-200 border-yellow-400"
                       : "bg-white border-gray-200 hover:shadow-lg"
                   }`}
+                  onClick={() => setOpenCardId(isOpen ? null : a.id)}
                 >
-                  {isBlocked ? (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold text-gray-700">
-                          {a.date}
-                        </span>
-                        <span className="text-xs font-semibold text-yellow-600">
-                          🚫 Bloqueado
-                        </span>
-                      </div>
+                  <div className="absolute left-0 top-0 h-full w-1 bg-yellow-500 rounded-l-xl"></div>
 
-                      <div className="mb-2 text-center">
-                        <h3 className="text-base font-bold text-gray-800">
-                          {a.hour
-                            ? `Horário bloqueado: ${a.hour}:00`
-                            : "Agenda bloqueada"}
-                        </h3>
-                        <p className="text-xs text-gray-600">
-                          {a.hour
-                            ? "Não é possível realizar agendamentos neste horário"
-                            : "Não é possível realizar agendamentos neste dia"}
-                        </p>
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-700">
+                        {formatDate(a.date)}
                       </div>
-
-                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Evento
-                          </span>
-                          <span className="text-gray-600">
-                            {a.hour
-                              ? "Horário indisponível"
-                              : "Feriado/Inativo"}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <button
-                            onClick={() => handleDelete(a.id)}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
-                          >
-                            Liberar agenda
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold text-gray-700">
-                          {a.date}
-                        </span>
-                        <span className="text-xs font-semibold text-gray-700">
-                          {`${a.hour}:00`}
-                        </span>
-                      </div>
-
-                      <div className="mb-2">
-                        <h3 className="text-base font-bold text-gray-900">
+                      {!isBlocked && (
+                        <h3 className="text-sm font-bold text-yellow-500">
                           {a.nome}
                         </h3>
-                        <p className="text-xs text-gray-500">{a.telefone}</p>
-                      </div>
+                      )}
+                    </div>
 
-                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Evento
-                          </span>
-                          <span className="text-gray-600">{a.evento}</span>
-                        </div>
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Pessoas
-                          </span>
-                          <span className="text-gray-600">{a.pessoas}</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-semibold ${
+                          isBlocked ? "text-yellow-600" : "text-gray-700"
+                        }`}
+                      >
+                        {isBlocked ? "🚫 Bloqueado" : `${a.hour}:00`}
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 text-gray-500 transform transition-transform ${
+                          isOpen ? "rotate-180" : "rotate-0"
+                        }`}
+                      />
+                    </div>
+                  </div>
 
-                      <div className="text-right">
-                        <button
-                          onClick={() => {
-                            setAppointmentToCancel(a.id); // guarda o id do agendamento
-                            setShowCancelConfirmModal(true); // abre o modal
-                          }}
-                          className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
+                  {isOpen && (
+                    <>
+                      {isBlocked ? (
+                        <>
+                          <div className="mb-2 text-center">
+                            <h3 className="text-base font-bold text-gray-800">
+                              {a.hour
+                                ? `Horário bloqueado: ${a.hour}:00`
+                                : "Agenda bloqueada"}
+                            </h3>
+                            <p className="text-xs text-gray-600">
+                              {a.hour
+                                ? "Não é possível realizar agendamentos neste horário"
+                                : "Não é possível realizar agendamentos neste dia"}
+                            </p>
+                          </div>
+
+                          <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Evento
+                              </span>
+                              <span className="text-gray-600">
+                                {a.hour
+                                  ? "Horário indisponível"
+                                  : "Feriado/Inativo"}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(a.id);
+                                }}
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                              >
+                                Liberar agenda
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs text-gray-500">{a.telefone}</p>
+
+                          <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Evento
+                              </span>
+                              <span className="text-gray-600">{a.evento}</span>
+                            </div>
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Pessoas
+                              </span>
+                              <span className="text-gray-600">{a.pessoas}</span>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setAppointmentToCancel(a.id);
+                                setShowCancelConfirmModal(true);
+                              }}
+                              className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -582,95 +608,111 @@ export default function AdminPage() {
             })
             .map((a) => {
               const isBlocked = a.blocked === true;
-
+              const isOpen = openCardId === a.id;
               return (
                 <div
                   key={a.id}
-                  className={`p-4 rounded-xl border shadow-md transition ${
+                  className={`relative p-4 rounded-xl border-2 shadow-md transition cursor-pointer ${
                     isBlocked
                       ? "bg-gradient-to-r from-gray-100 to-gray-200 border-yellow-400"
                       : "bg-white border-gray-200 hover:shadow-lg"
                   }`}
+                  onClick={() => setOpenCardId(isOpen ? null : a.id)}
                 >
-                  {isBlocked ? (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold text-gray-700">
-                          {a.date}
-                        </span>
-                        <span className="text-xs font-semibold text-yellow-600">
-                          🚫 Bloqueado
-                        </span>
-                      </div>
+                  <div className="absolute left-0 top-0 h-full w-1 bg-yellow-500 rounded-l-xl"></div>
 
-                      <div className="mb-2 text-center">
-                        <h3 className="text-base font-bold text-gray-800">
-                          Agenda bloqueada
-                        </h3>
-                        <p className="text-xs text-gray-600">
-                          Não é possível realizar agendamentos neste dia
-                        </p>
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-700">
+                        {formatDate(a.date)}
                       </div>
-
-                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Evento
-                          </span>
-                          <span className="text-gray-600">Feriado/Inativo</span>
-                        </div>
-                        <div className="text-right">
-                          <button
-                            onClick={() => handleDelete(a.id)}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
-                          >
-                            Liberar agenda
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold text-gray-700">
-                          {a.date}
-                        </span>
-                        <span className="text-xs font-semibold text-gray-700">
-                          {`${a.hour}:00`}
-                        </span>
-                      </div>
-
-                      <div className="mb-2">
-                        <h3 className="text-base font-bold text-gray-900">
+                      {!isBlocked && (
+                        <h3 className="text-sm font-bold text-yellow-500">
                           {a.nome}
                         </h3>
-                        <p className="text-xs text-gray-500">{a.telefone}</p>
-                      </div>
+                      )}
+                    </div>
 
-                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Evento
-                          </span>
-                          <span className="text-gray-600">{a.evento}</span>
-                        </div>
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Pessoas
-                          </span>
-                          <span className="text-gray-600">{a.pessoas}</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-semibold ${
+                          isBlocked ? "text-yellow-600" : "text-gray-700"
+                        }`}
+                      >
+                        {isBlocked ? "🚫 Bloqueado" : `${a.hour}:00`}
+                      </span>
+                      <ChevronDownIcon
+                        className={`h-5 w-5 text-gray-500 transform transition-transform ${
+                          isOpen ? "rotate-180" : "rotate-0"
+                        }`}
+                      />
+                    </div>
+                  </div>
 
+                  {isOpen && (
+                    <>
                       {isBlocked ? (
-                        <div className="text-center text-yellow-600 font-semibold text-sm">
-                          🚫 Não é possível agendar neste dia
-                        </div>
+                        <>
+                          <div className="mb-2 text-center">
+                            <h3 className="text-base font-bold text-gray-800">
+                              {a.hour
+                                ? `Horário bloqueado: ${a.hour}:00`
+                                : "Agenda bloqueada"}
+                            </h3>
+                            <p className="text-xs text-gray-600">
+                              {a.hour
+                                ? "Não é possível realizar agendamentos neste horário"
+                                : "Não é possível realizar agendamentos neste dia"}
+                            </p>
+                          </div>
+
+                          <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Evento
+                              </span>
+                              <span className="text-gray-600">
+                                {a.hour
+                                  ? "Horário indisponível"
+                                  : "Feriado/Inativo"}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(a.id);
+                                }}
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                              >
+                                Liberar agenda
+                              </button>
+                            </div>
+                          </div>
+                        </>
                       ) : (
-                        <div className="text-right">
+                        <>
+                          <p className="text-xs text-gray-500">{a.telefone}</p>
+
+                          <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Evento
+                              </span>
+                              <span className="text-gray-600">{a.evento}</span>
+                            </div>
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Pessoas
+                              </span>
+                              <span className="text-gray-600">{a.pessoas}</span>
+                            </div>
+                          </div>
+
                           <div className="text-right">
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setAppointmentToCancel(a.id);
                                 setShowCancelConfirmModal(true);
                               }}
@@ -679,7 +721,7 @@ export default function AdminPage() {
                               Cancelar
                             </button>
                           </div>
-                        </div>
+                        </>
                       )}
                     </>
                   )}
@@ -701,102 +743,121 @@ export default function AdminPage() {
             })
             .map((a) => {
               const isBlocked = a.blocked === true;
-
+              const isOpen = openCardId === a.id;
               return (
                 <div
                   key={a.id}
-                  className={`p-4 rounded-xl border shadow-md transition ${
+                  className={`relative p-4 rounded-xl border-2 shadow-md transition cursor-pointer ${
                     isBlocked
                       ? "bg-gradient-to-r from-gray-100 to-gray-200 border-yellow-400"
                       : "bg-white border-gray-200 hover:shadow-lg"
                   }`}
+                  onClick={() => setOpenCardId(isOpen ? null : a.id)}
                 >
-                  {isBlocked ? (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold text-gray-700">
-                          {a.date}
-                        </span>
-                        <span className="text-xs font-semibold text-yellow-600">
-                          🚫 Bloqueado
-                        </span>
-                      </div>
+                  <div className="absolute left-0 top-0 h-full w-1 bg-yellow-500 rounded-l-xl"></div>
 
-                      <div className="mb-2 text-center">
-                        <h3 className="text-base font-bold text-gray-800">
-                          Agenda bloqueada
-                        </h3>
-                        <p className="text-xs text-gray-600">
-                          Não é possível realizar agendamentos neste dia
-                        </p>
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-700">
+                        {formatDate(a.date)}
                       </div>
-
-                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Evento
-                          </span>
-                          <span className="text-gray-600">Feriado/Inativo</span>
-                        </div>
-                        <div className="text-right">
-                          <button
-                            onClick={() => handleDelete(a.id)}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
-                          >
-                            Liberar agenda
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold text-gray-700">
-                          {a.date}
-                        </span>
-                        <span className="text-xs font-semibold text-gray-700">
-                          {`${a.hour}:00`}
-                        </span>
-                      </div>
-
-                      <div className="mb-2">
-                        <h3 className="text-base font-bold text-gray-900">
+                      {!isBlocked && (
+                        <h3 className="text-sm font-bold text-yellow-500">
                           {a.nome}
                         </h3>
-                        <p className="text-xs text-gray-500">{a.telefone}</p>
-                      </div>
+                      )}
+                    </div>
 
-                      <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Evento
-                          </span>
-                          <span className="text-gray-600">{a.evento}</span>
-                        </div>
-                        <div>
-                          <span className="block font-medium text-gray-700">
-                            Pessoas
-                          </span>
-                          <span className="text-gray-600">{a.pessoas}</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-semibold ${
+                          isBlocked ? "text-yellow-600" : "text-gray-700"
+                        }`}
+                      >
+                        {isBlocked ? "🚫 Bloqueado" : `${a.hour}:00`}
+                      </span>
 
+                      <ChevronDownIcon
+                        className={`h-5 w-5 text-gray-500 transform transition-transform ${
+                          isOpen ? "rotate-180" : "rotate-0"
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <>
                       {isBlocked ? (
-                        <div className="text-center text-yellow-600 font-semibold text-sm">
-                          🚫 Não é possível agendar neste dia
-                        </div>
+                        <>
+                          <div className="mb-2 text-center">
+                            <h3 className="text-base font-bold text-gray-800">
+                              {a.hour
+                                ? `Horário bloqueado: ${a.hour}:00`
+                                : "Agenda bloqueada"}
+                            </h3>
+                            <p className="text-xs text-gray-600">
+                              {a.hour
+                                ? "Não é possível realizar agendamentos neste horário"
+                                : "Não é possível realizar agendamentos neste dia"}
+                            </p>
+                          </div>
+
+                          <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2">
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Evento
+                              </span>
+                              <span className="text-gray-600">
+                                {a.hour
+                                  ? "Horário indisponível"
+                                  : "Feriado/Inativo"}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(a.id);
+                                }}
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                              >
+                                Liberar agenda
+                              </button>
+                            </div>
+                          </div>
+                        </>
                       ) : (
-                        <div className="text-right">
-                          <button
-                            onClick={() => {
-                              setAppointmentToCancel(a.id);
-                              setShowCancelConfirmModal(true);
-                            }}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
-                          >
-                            Cancelar
-                          </button>
-                        </div>
+                        <>
+                          <p className="text-xs text-gray-500">{a.telefone}</p>
+
+                          <div className="flex justify-between text-xs bg-gray-50 rounded-lg p-2 mb-2">
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Evento
+                              </span>
+                              <span className="text-gray-600">{a.evento}</span>
+                            </div>
+                            <div>
+                              <span className="block font-medium text-gray-700">
+                                Pessoas
+                              </span>
+                              <span className="text-gray-600">{a.pessoas}</span>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setAppointmentToCancel(a.id);
+                                setShowCancelConfirmModal(true);
+                              }}
+                              className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-2 rounded-lg shadow hover:from-yellow-600 hover:to-yellow-700 transition font-medium text-sm"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </>
                       )}
                     </>
                   )}
