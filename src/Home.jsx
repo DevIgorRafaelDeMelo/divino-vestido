@@ -246,8 +246,8 @@ export default function App() {
             Charme e Sofisticação
           </h2>
           <p className="text-lg text-white -600 mb-6">
-            Roupas de grife para momentos
-            <br /> inesquecíveis.
+            Roupas para momentos
+            <br /> incríveis.
           </p>
           <button
             onClick={(e) => {
