@@ -10,7 +10,7 @@ export default function App() {
     <div>
       {currentPage === "home" && <HomePage />}
       {currentPage === "admin" && <AdminPage />}
-
+      <div className="pb-[40vh]"></div>
       <footer className="fixed bottom-0 left-0 w-full bg-gray-900 text-gray-300 py-10">
         <div className="container mx-auto px-6 flex flex-col items-center text-center">
           <div className="flex items-center justify-center mb-6">
