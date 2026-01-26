@@ -7,11 +7,13 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
 
   return (
-    <div>
-      {currentPage === "home" && <HomePage />}
-      {currentPage === "admin" && <AdminPage />}
-      <div className="pb-[40vh]"></div>
-      <footer className="fixed bottom-0 left-0 w-full bg-gray-900 text-gray-300 py-10">
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-grow">
+        {currentPage === "home" && <HomePage />}
+        {currentPage === "admin" && <AdminPage />}
+      </main>
+
+      <footer className="w-full bg-gray-900 text-gray-300 py-10">
         <div className="container mx-auto px-6 flex flex-col items-center text-center">
           <div className="flex items-center justify-center mb-6">
             <img
