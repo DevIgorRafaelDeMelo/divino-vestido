@@ -1,21 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
-
 import logo from "./assets/Logo.png";
-import Img from "./assets/formatura.jpeg";
-import Img01 from "./assets/15anos.jpeg";
-import Img3 from "./assets/casamento.jpeg";
-import Img2 from "./assets/vestido24.jpeg";
-import Img1 from "./assets/vestido20.jpeg";
-import Img4 from "./assets/WhatsApp Image 2026-02-01 at 10.03.27.jpeg";
-import Casamento from "./assets/casamento1.jpeg";
+import V1 from "./assets/Vestido1.jpeg";
+import V2 from "./assets/vestido2.jpeg";
+import V3 from "./assets/vestido3.jpeg";
+import V4 from "./assets/vestido4.jpeg";
+import V5 from "./assets/vestido5.jpeg";
+import V6 from "./assets/vestido6.jpeg";
+import V7 from "./assets/vestido7.jpeg";
+import V8 from "./assets/vestido8.jpeg";
+import V9 from "./assets/vestido9.jpeg";
+import V10 from "./assets/vestido10.jpeg";
+import V11 from "./assets/vestido11.jpeg";
+import V12 from "./assets/vestido12.jpeg";
+import V13 from "./assets/vestido13.jpeg";
+import V14 from "./assets/vestido14.jpeg";
+import V15 from "./assets/vestido15.jpeg";
+import V16 from "./assets/vestido16.jpeg";
+import V17 from "./assets/vestido17.jpeg";
+import V18 from "./assets/vestido18.jpeg";
+import V19 from "./assets/vestido19.jpeg";
+import V20 from "./assets/vestido20.jpeg";
+import V21 from "./assets/vestido21.jpeg";
+import V22 from "./assets/vestido22.jpeg";
+import V23 from "./assets/vestido23.jpeg";
+import V24 from "./assets/vestido24.jpeg";
+import V25 from "./assets/vestido25.jpeg";
 
-export default function App() {
+export default function Catalogo() {
   const [isOpen, setIsOpen] = useState(false);
-  const images = [Img1, Img2, Img3];
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+
   const [lastReservation, setLastReservation] = useState(null);
 
   const [showFormModal, setShowFormModal] = useState(false);
@@ -32,16 +48,6 @@ export default function App() {
   const today = new Date();
   const startDay = new Date(today);
   startDay.setDate(today.getDate());
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) =>
-        prevIndex === images.length - 1 ? 0 : prevIndex + 1,
-      );
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [images.length]);
 
   const [availableTimes, setAvailableTimes] = useState([]);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -104,10 +110,12 @@ export default function App() {
 
     setAvailableTimes(available);
   };
-
   return (
-    <>
-      <nav className=" fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-lg">
+    <section
+      id="catalogo"
+      className="min-h-screen p-10  bg-gradient-to-b from-pink-50 via-white to-pink-100"
+    >
+      <nav className="fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-lg">
         <div className="container mx-auto px-8 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <img src={logo} alt="Logo Divino Estilo" className="h-24 w-auto" />
@@ -156,9 +164,9 @@ export default function App() {
                 setShowCalendar(!showCalendar);
               }}
               className="relative transition duration-300 hover:text-yellow-500 
-                   after:content-[''] after:block after:w-0 after:h-[2px] 
-                   after:bg-yellow-500 after:transition-all after:duration-300 
-                   hover:after:w-full after:mx-auto"
+                           after:content-[''] after:block after:w-0 after:h-[2px] 
+                           after:bg-yellow-500 after:transition-all after:duration-300 
+                           hover:after:w-full after:mx-auto"
             >
               Agendamento
             </a>
@@ -168,9 +176,9 @@ export default function App() {
               rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
               className="relative transition duration-300 hover:text-yellow-500 
-                   after:content-[''] after:block after:w-0 after:h-[2px] 
-                   after:bg-yellow-500 after:transition-all after:duration-300 
-                   hover:after:w-full after:mx-auto"
+                           after:content-[''] after:block after:w-0 after:h-[2px] 
+                           after:bg-yellow-500 after:transition-all after:duration-300 
+                           hover:after:w-full after:mx-auto"
             >
               Contato
             </a>
@@ -193,9 +201,9 @@ export default function App() {
                 setIsOpen(false);
               }}
               className="relative text-lg transition duration-300 hover:text-yellow-500 
-                   after:content-[''] after:block after:w-0 after:h-[2px] 
-                   after:bg-yellow-500 after:transition-all after:duration-300 
-                   hover:after:w-full after:mx-auto"
+                           after:content-[''] after:block after:w-0 after:h-[2px] 
+                           after:bg-yellow-500 after:transition-all after:duration-300 
+                           hover:after:w-full after:mx-auto"
             >
               Agendamento
             </a>
@@ -205,167 +213,244 @@ export default function App() {
               rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
               className="relative text-lg transition duration-300 hover:text-yellow-500 
-                   after:content-[''] after:block after:w-0 after:h-[2px] 
-                   after:bg-yellow-500 after:transition-all after:duration-300 
-                   hover:after:w-full after:mx-auto"
+                           after:content-[''] after:block after:w-0 after:h-[2px] 
+                           after:bg-yellow-500 after:transition-all after:duration-300 
+                           hover:after:w-full after:mx-auto"
             >
               Contato
             </a>
           </div>
         </div>
       </nav>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          setShowCalendar(!showCalendar);
-        }}
-        className="hidden md:flex fixed bottom-5 right-5 px-6 py-3 bg-yellow-500 text-white font-semibold rounded-full shadow hover:bg-yellow-600 transition z-50"
-      >
-        Agende sua Experiência
-      </button>
+      {/* Título da página */}
+      <div className="text-center mb-12 mt-40">
+        <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 font-serif">
+          Catálogo de Vestidos
+        </h1>
+        <div className="mt-2 w-24 h-1 bg-yellow-500 mx-auto rounded"></div>
+        <p className="mt-4 text-lg text-gray-600">
+          Modelos exclusivos para cada ocasião especial
+        </p>
+      </div>
 
-      <section className="relative flex flex-col md:flex-row h-[100vh] overflow-hidden  z-100">
-        <div
-          className="hidden md:block w-1/2 bg-cover bg-center"
-          style={{ backgroundImage: `url(${Img4})` }}
-        ></div>
-
-        <div
-          key={currentIndex}
-          className="block md:hidden absolute inset-0 h-full w-full bg-cover bg-center animate-zoomIn brightness-90 z-60"
-          style={{ backgroundImage: `url(${images[currentIndex]})` }}
-        ></div>
-
-        <div className="hidden md:flex flex w-full md:w-1/2 items-center justify-center text-center px-6 max-w-3xl mx-auto">
-          <div className="bg-white/70 backdrop-blur-md rounded-2xl p-12 shadow-lg border border-gray-200">
-            <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 font-serif">
-              Charme & Sofisticação
-            </h2>
-
-            <h3 className="text-2xl md:text-3xl text-pink-600 font-semibold mb-4">
-              Experiências únicas em cada detalhe
-            </h3>
-
-            <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
-              Descubra roupas que unem elegância e conforto, criadas para
-              transformar seus momentos em ocasiões inesquecíveis. Cada peça é
-              pensada para valorizar seu estilo e transmitir confiança.
-            </p>
-
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                setShowCalendar(!showCalendar);
-              }}
-              className="px-10 py-4 bg-pink-600 text-white font-semibold rounded-full shadow-md hover:bg-pink-700 hover:scale-105 transition-transform duration-300"
-            >
-              Agende sua Experiência
-            </button>
-          </div>
+      {/* Grid de vestidos */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:px-20">
+        {/* Card 1 */}
+        <div className="hidden md:block  bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V1}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
         </div>
-
-        <div className="block md:hidden relative z-10 w-full h-screen bg-cover bg-center">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex flex-col items-center justify-end text-center px-6 py-12">
-            <h2 className="text-4xl font-extrabold text-yellow-400 mb-4 font-serif drop-shadow-lg">
-              Viva a Experiência
-            </h2>
-            <p className="text-base text-gray-100 mb-6 leading-relaxed max-w-sm">
-              Uma coleção pensada para transformar momentos em memórias
-              inesquecíveis.
-            </p>
-            <button
-              onClick={() => setShowCalendar(!showCalendar)}
-              className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-full shadow-lg hover:bg-yellow-600 transition-transform hover:scale-110"
-            >
-              Agendar Agora
-            </button>
-          </div>
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V2}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
         </div>
-      </section>
+        {}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V3}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+        {}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V4}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V5}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:px-20 mt-20 vestido3Vestido4vestidovestido6">
+        {/* Card 1 */}
+        <div className="hidden md:block  bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V6}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300 "
+          />
+        </div>
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V7}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V8}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V9}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V10}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+      </div>
 
-      <section id="catalogo" className="p-10 py-40 bg-white md:px-80 m-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 font-serif">
-            Catálogo de Vestidos
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:px-20 mt-20">
+        {/* Card 1 */}
+        <div className="hidden md:block bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V11}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V12}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V13}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V14}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V15}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:px-20 mt-20">
+        {/* Card 1 */}
+        <div className="hidden md:block bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V16}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V17}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V18}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V19}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V20}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:px-20 mt-20">
+        {/* Card 1 */}
+        <div className="hidden md:block bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V21}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V22}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V23}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V24}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>{" "}
+        <div className="bg-white border border-yellow-200 shadow-lg rounded-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+          <img
+            src={V25}
+            alt="Vestido de Gala"
+            className="w-full  object-cover transition-transform duration-300"
+          />
+        </div>
+      </div>
+      <section className="px-8 py-16 bg-gradient-to-r from-pink-50 via-white to-pink-100 my-20">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 font-serif">
+            Catálogo Exclusivo
           </h2>
-          <div className="mt-2 w-24 h-1 bg-yellow-500 mx-auto rounded"></div>
-          <p className="mt-4 text-lg text-gray-600">
-            Modelos exclusivos para cada ocasião especial
+          <p className="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
+            Explore nossa coleção de vestidos pensada para diferentes ocasiões.
+            Cada peça foi criada para transmitir{" "}
+            <span className="font-semibold text-pink-600">elegância</span>,
+            <span className="font-semibold text-pink-600">sofisticação</span> e
+            realçar sua beleza única.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white border border-yellow-200 shadow-md rounded-lg overflow-hidden">
-            <img
-              src={Img}
-              alt="Vestido de Gala"
-              className="w-full h-80 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="text-xl font-semibold text-gray-800 font-serif">
-                Formaturas
-              </h3>
-              <p className="text-gray-600">Disponível para aluguel</p>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowCalendar(true);
-                  setIsOpen(false);
-                }}
-                className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md"
-              >
-                Agendar
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white border border-yellow-200 shadow-md rounded-lg overflow-hidden">
-            <img
-              src={Casamento}
-              alt="Vestido de Gala"
-              className="w-full h-80 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="text-xl font-semibold text-gray-800 font-serif">
-                Vestidos de casamento
-              </h3>
-              <p className="text-gray-600">Disponível para aluguel</p>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowCalendar(true);
-                  setIsOpen(false);
-                }}
-                className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md"
-              >
-                Agendar
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white border border-yellow-200 shadow-md rounded-lg overflow-hidden">
-            <img
-              src={Img01}
-              alt="Vestido de Gala"
-              className="w-full h-80 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="text-xl font-semibold text-gray-800 font-serif">
-                15 anos
-              </h3>
-              <p className="text-gray-600">Disponível para aluguel</p>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowCalendar(true);
-                  setIsOpen(false);
-                }}
-                className="mt-3 px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 shadow-md"
-              >
-                Agendar
-              </button>
-            </div>
-          </div>
+          <p className="text-md text-gray-600 mb-8">
+            Aqui você encontra opções para <strong>formaturas</strong>,{" "}
+            <strong>casamentos</strong>,<strong>festas de 15 anos</strong> e
+            muito mais. Todos os modelos estão disponíveis para aluguel com
+            agendamento rápido e prático.
+          </p>
+          <a
+            onClick={() => setShowCalendar(true)}
+            className="inline-block px-8 py-3 bg-pink-600 text-white font-semibold rounded-full shadow-md hover:bg-pink-700 transition-transform hover:scale-105"
+          >
+            Agendar Prova
+          </a>
         </div>
       </section>
 
@@ -396,6 +481,7 @@ export default function App() {
                   return d;
                 });
 
+                // Filtra apenas segunda (1) até sexta (5)
                 const daysMondayToFriday = daysForward.filter(
                   (d) => d.getDay() >= 1 && d.getDay() <= 5,
                 );
@@ -483,7 +569,7 @@ export default function App() {
                   <div className="flex items-center justify-center mt-6">
                     <div
                       className="bg-gradient-to-r from-gray-100 to-gray-200 border-l-4 border-yellow-500 
-          rounded-xl shadow-md px-6 py-4 flex items-center gap-3 w-full max-w-lg"
+                rounded-xl shadow-md px-6 py-4 flex items-center gap-3 w-full max-w-lg"
                     >
                       <div className="flex flex-col">
                         <p className="text-gray-600 text-sm">
@@ -694,6 +780,6 @@ export default function App() {
           </div>
         </div>
       )}
-    </>
+    </section>
   );
 }
