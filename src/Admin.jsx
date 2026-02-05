@@ -11,7 +11,7 @@ import { db } from "./firebase";
 import logo from "./assets/Logo.png";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 
-export default function AdminPage() {
+export default function AdminPage({ setCurrentPage }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [credentials, setCredentials] = useState({ user: "", pass: "" });
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
@@ -220,6 +220,7 @@ export default function AdminPage() {
               src={logo}
               alt="Logo Divino Estilo"
               className="h-16 md:h-24 w-auto"
+              onClick={() => setCurrentPage("home")}
             />
           </div>
 

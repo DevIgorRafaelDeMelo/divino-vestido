@@ -12,8 +12,12 @@ export default function App() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
         {currentPage === "home" && <HomePage />}
-        {currentPage === "admin" && <AdminPage />}
-        {currentPage === "catalogo" && <Catalago />}
+        {currentPage === "admin" && (
+          <AdminPage setCurrentPage={setCurrentPage} />
+        )}
+        {currentPage === "catalogo" && (
+          <Catalago setCurrentPage={setCurrentPage} />
+        )}
       </main>
 
       {currentPage !== "catalogo" && currentPage !== "admin" && (

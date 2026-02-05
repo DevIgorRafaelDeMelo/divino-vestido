@@ -28,7 +28,7 @@ import V23 from "./assets/vestido23.jpeg";
 import V24 from "./assets/vestido24.jpeg";
 import V25 from "./assets/vestido25.jpeg";
 
-export default function Catalogo() {
+export default function Catalogo({ setCurrentPage }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -118,7 +118,12 @@ export default function Catalogo() {
       <nav className="fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-lg">
         <div className="container mx-auto px-8 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <img src={logo} alt="Logo Divino Estilo" className="h-24 w-auto" />
+            <img
+              src={logo}
+              alt="Logo Divino Estilo"
+              onClick={() => setCurrentPage("home")}
+              className="h-24 w-auto"
+            />
           </div>
 
           <button
